@@ -22,6 +22,7 @@ from core.achievements import SteamAchievements
 from core.overlay import OverlayService
 from core.sfx import SfxService
 from core.updater import Updater
+from core.discs import DiscService, DiscMonitor, PLAYABLE
 from core.retroachievements import RetroAchievementsService, CONSOLES as RA_CONSOLES
 from core.network import NetworkService
 from core.backdrop import BackdropService
@@ -678,6 +679,8 @@ def main():
     overlay = api._overlay = OverlayService(LIBRARY / "achicons", app)
     ra = api._ra = RetroAchievementsService(app, retrobat, LIBRARY)
     retrobat.on_launch = ra.on_launch
+    discs = service.discs = api._discs = DiscService(retrobat, app)
+    discs.on_launch = ra.on_launch  # conquistas por cima do jogo também nos discos
     app_dir = Path(sys.executable).parent if getattr(sys, "frozen", False) else HERE
     overlay.sfx = api._sfx = SfxService([DATA / "SFX", app_dir / "SFX"], app)
     rbsetup = api._rbs = RetroBatSetup(retrobat, DATA / "downloads", notify=lambda st: api._emit("rbSetup", st))
@@ -731,6 +734,24 @@ def main():
             on_combo()
 
     rbsetup.on_install_start, rbsetup.on_install_end = install_start, install_end
+
+    def on_disc_insert(drive):  # disco no leitor: reconhece, coloca na biblioteca e destaca (como num console)
+        info = discs.insert(drive)
+        letter = drive.rstrip("\\")
+        if not info:
+            return
+        if info["system"] not in PLAYABLE:
+            js(window, f"toast({json.dumps('💿 ' + (info['why'] or 'Disco não reconhecido.'))},1)")
+            return
+        gid, name, is_new = service.import_disc(info)
+        games_changed(f"💿 {name} no leitor {letter}" + ("" if info["playable"] else f" · {info['why']}"))
+        js(window, f"discIn({json.dumps({'id': gid, 'name': name, 'playable': info['playable'], 'why': info['why'], 'need': info.get('need', '')})})")
+        if is_new and scraper.cfg.get("auto_on_insert") and scraper.available():
+            threading.Thread(target=auto_scrape, args=(gid,), daemon=True).start()
+
+    def on_disc_remove(drive):
+        discs.remove(drive)
+        games_changed("💿 Disco retirado do leitor")
 
     def on_remove(_drives):
         games_changed("● SD removido")
@@ -826,6 +847,7 @@ def main():
         updater.start()
         dark_titlebar(window)
         SDMonitor(on_insert, on_remove, on_tick).start()
+        DiscMonitor(on_disc_insert, on_disc_remove).start()
         watch_combo(on_combo)
 
     webview.start(boot)

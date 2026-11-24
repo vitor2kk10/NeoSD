@@ -58,7 +58,7 @@ class GameService:
     # ---------- identificação do cartão ----------
     def source(self, game):
         """'sd' ou 'local' (cadastros antigos sem a chave: some o exe -> provavelmente SD)."""
-        if game.get("source") in ("sd", "local"):
+        if game.get("source") in ("sd", "local", "disc"):
             return game["source"]
         exe = game.get("exe_path", "")
         return "local" if exe and os.path.exists(exe) else "sd"
@@ -79,6 +79,12 @@ class GameService:
     def _paths(self, game, mounted):
         """Caminhos prontos pra rodar agora ({'exe'} ou {'emu','rom'}), ou None se o jogo não está disponível.
         Em jogos de SD o caminho é refeito com a letra ATUAL do cartão certo."""
+        if game.get("launch_type") == "disc":  # disco físico no leitor de CD/DVD
+            discs = getattr(self, "discs", None)
+            drive = discs.find(game) if discs else None
+            if not drive or not discs.command(game.get("disc_system", ""), drive):
+                return None
+            return {"disc": discs, "drive": drive, "system": game.get("disc_system", "")}
         if game.get("launch_type") == "uri":  # Steam/Epic: abre pelo protocolo da loja; ativo enquanto estiver instalado
             inst = game.get("install_path", "")
             return {"uri": game["launch_uri"]} if game.get("launch_uri") and (not inst or os.path.isdir(inst)) else None
@@ -111,6 +117,13 @@ class GameService:
         name = game.get("name", "")
         if game.get("launch_type") == "uri":
             return f"A pasta de {name} não foi encontrada. O jogo foi desinstalado?"
+        if game.get("launch_type") == "disc":
+            discs = getattr(self, "discs", None)
+            drive = discs.find(game) if discs else None
+            if drive:
+                return discs.current.get(drive, {}).get("why") or "O emulador deste disco não está instalado no RetroBat."
+            from .discs import optical_drives
+            return f"Coloque o disco de {name} no leitor." if optical_drives() else "Este PC não tem leitor de CD/DVD."
         if self.source(game) == "sd" and not self._match_cart(game, mounted):
             return f"O cartão inserido não é o de {name}." if mounted else f"Insira o cartão SD de {name} para jogar."
         if game.get("launch_type") == "retrobat":
@@ -134,6 +147,10 @@ class GameService:
                 if start is None:
                     return False, "Abrir jogos de loja só funciona no Windows."
                 start(paths["uri"])
+            elif "disc" in paths:
+                ok, msg = paths["disc"].launch(paths["system"], paths["drive"])
+                if not ok:
+                    return False, msg
             elif "rb" in paths:
                 ovr = {"emulator": game.get("rb_emulator", ""), "core": game.get("rb_core", "")}
                 ok, msg = paths["rb"].launch(game.get("rb_system", ""), paths["rom"], ovr)
@@ -180,13 +197,35 @@ class GameService:
             save_json("catalog.json", self.catalog)
         return name, is_new
 
+    def import_disc(self, info):
+        """Registra (ou reencontra) o jogo de um disco físico. Retorna (id, nome, é_novo)."""
+        from .discs import SYSTEMS
+        with self.lock:
+            for key, g in self.catalog.items():
+                if g.get("launch_type") == "disc" and (
+                        (info["serial"] and g.get("disc_serial") == info["serial"]) or
+                        (not info["serial"] and g.get("disc_vserial") == info["vserial"])):
+                    g.update(disc_label=info["label"], disc_vserial=info["vserial"])
+                    save_json("catalog.json", self.catalog)
+                    return key, g.get("name", key), False
+            name = info["name"]
+            if name in self.catalog:  # o mesmo nome já existe (ex.: a ISO do mesmo jogo no RetroBat)
+                name = f"{name} (disco)"
+            entry = {"name": name, "launch_type": "disc", "source": "disc", "description": "", "cover": None, "icon": None,
+                     "disc_system": info["system"], "disc_serial": info["serial"], "disc_vserial": info["vserial"],
+                     "disc_label": info["label"], "platform": SYSTEMS.get(info["system"], "")}
+            entry.update({k: "" for k in METADATA_KEYS if k not in entry})
+            self.catalog[name] = entry
+            save_json("catalog.json", self.catalog)
+        return name, name, True
+
     # ---------- adicionar / editar / remover jogo ----------
     def get_form(self, game_id=None):
         with self.lock:
             g = dict(self.catalog.get(game_id) or {}) if game_id else {}
         form = {k: g.get(k) or "" for k in ("name", "description", "cover", "icon", "exe_path", "emulator_id",
                                            "rom_path", "launch_uri", "install_path") + METADATA_KEYS}
-        form["launch_type"] = g.get("launch_type") if g.get("launch_type") in ("emulator", "uri", "retrobat") else "direct"
+        form["launch_type"] = g.get("launch_type") if g.get("launch_type") in ("emulator", "uri", "retrobat", "disc") else "direct"
         form["rating"] = "" if g.get("rating") in (None, "") else str(g["rating"])
         form["source"] = self.source(g) if g else "local"
         form["cover_preview"] = load_art(resolve(form["cover"]), "cover")[0] or ""
@@ -219,9 +258,14 @@ class GameService:
         if not name:
             return False, "Preencha o nome do jogo.", None
         editing = bool(original_id)
-        launch = form.get("launch_type") if form.get("launch_type") in ("emulator", "uri", "retrobat") else "direct"
+        launch = form.get("launch_type") if form.get("launch_type") in ("emulator", "uri", "retrobat", "disc") else "direct"
         with self.lock:
             was_rb = editing and (self.catalog.get(original_id) or {}).get("launch_type") == "retrobat"
+            was_disc = editing and (self.catalog.get(original_id) or {}).get("launch_type") == "disc"
+        if was_disc and launch in ("direct", "disc") and not (form.get("exe_path") or "").strip():
+            launch = "disc"  # jogo de disco físico: editar nome/capa/ficha não muda como ele roda
+        elif launch == "disc":
+            return False, "Jogos de disco entram sozinhos quando o disco é colocado no leitor.", None
         if was_rb and launch == "direct" and not (form.get("exe_path") or "").strip():
             launch = "retrobat"  # o formulário do desktop não conhece o tipo RetroBat: mantém como estava
         if launch == "retrobat" and not was_rb:
@@ -246,13 +290,13 @@ class GameService:
                     return False, "Selecione um emulador.", None
                 if not editing and not (rom and os.path.exists(rom)):
                     return False, "Selecione uma ROM/ISO válida.", None
-            elif not editing and not (exe and os.path.exists(exe)):
+            elif launch != "disc" and not editing and not (exe and os.path.exists(exe)):
                 return False, "Selecione um executável válido.", None
 
             game = dict(self.catalog[original_id]) if editing else {}
             safe = safe_name(name)
             game.update(name=name, description=(form.get("description") or "").strip(),
-                        source="sd" if form.get("source") == "sd" else "local",
+                        source="disc" if launch == "disc" else "sd" if form.get("source") == "sd" else "local",
                         cover=self._adopt_art(form.get("cover"), safe, "cover"),
                         icon=self._adopt_art(form.get("icon"), safe, "icon"))
             for k in METADATA_KEYS:
@@ -264,7 +308,9 @@ class GameService:
                     raise ValueError
             except ValueError:
                 return False, "A nota deve ser um número de 0 a 10.", None
-            if launch == "retrobat":
+            if launch == "disc":
+                pass
+            elif launch == "retrobat":
                 if rom:
                     game["rom_path"] = rom
             elif launch == "uri":
@@ -288,7 +334,7 @@ class GameService:
                 identity = sd_identity(target, self.mounted())
                 if identity:  # cartão inserido agora: grava quem ele é (senão mantém o que já tinha)
                     game.update(identity)
-            else:
+            elif game["source"] != "disc":
                 for k in ("drive", "sd_serial", "sd_name"):
                     game.pop(k, None)
             if editing and name != original_id:
@@ -569,11 +615,12 @@ class GameService:
         emu = self.emulators.get(g.get("emulator_id", ""), {}) if g.get("launch_type") == "emulator" else {}
         src = self.source(g)
         cart = self._match_cart(g, mounted) if src == "sd" else None
+        disc = getattr(self, "discs", None).find(g) if g.get("launch_type") == "disc" and getattr(self, "discs", None) else None
         dash = lambda k: g.get(k) or "—"
         return {
             "id": key, "n": g.get("name", key), "d": g.get("description", ""),
             "s": src, "active": self._paths(g, mounted) is not None,
-            "drive": cart["drive"] if cart else g.get("drive", ""),
+            "drive": disc or (cart["drive"] if cart else g.get("drive", "")),
             "platform": g.get("platform") or emu.get("name") or g.get("rb_system_name") or "PC",
             "genre": g.get("genre", ""), "dev": dash("developer"), "year": dash("release_date"),
             "size": dash("size"), "time": dash("playtime"),

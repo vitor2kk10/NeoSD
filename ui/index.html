@@ -349,23 +349,24 @@ const calc=()=>G.forEach(g=>g.active=g.s==="l"||(g.s==="sd"&&S.sd&&g.cur));calc(
 const H={a:265,b:220},near=(c,t)=>c+(((t-c+540)%360+360)%360-180);
 const hue=g=>{H.a=near(H.a,g.h[0]);H.b=near(H.b,g.h[1]);R.style.setProperty("--h1",H.a);R.style.setProperty("--h2",H.b)};
 const cover=(g,x="")=>`<div class="cv${g.img?" has":""}" style="--h1:${g.h[0]};--h2:${g.h[1]}">${g.img?`<img src="${g.img}" alt="">`:""}${x}<small>${g.platform||"PC"}</small><h3>${g.n}</h3></div>`;
-const tag=g=>g.s==="sd"?`<span class="tag">SD</span>`:"";
+const tag=g=>g.s==="sd"?`<span class="tag">SD</span>`:g.s==="disc"?`<span class="tag">DISCO</span>`:"";
 // sons do modo console: tocados pelo Python (o navegador bloquearia áudio iniciado pelo controle)
 const SFXST={intro:true};let SFXLOG=[];
 function sfx(k){const now=performance.now();if(sfx.last===k&&now-sfx.t<90)return;sfx.last=k;sfx.t=now;SFXLOG.push(k);if(SFXLOG.length>50)SFXLOG.shift();if(API())API().sfx_play(k)}
 function toast(t,warn){if(warn&&S.con)sfx("error");const e=$("#toast");e.textContent=t;e.style.color=warn?"var(--warn)":"var(--tx)";e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2600)}
 async function launch(g){if(!g)return;const a=API();if(a){const r=await a.launch_game(g.id);r.ok?toast("▶  Iniciando "+g.n+"…"):toast(r.msg,1);return}act(g)?toast("▶  Iniciando "+g.n+"…"):toast(g.s==="sd"?"Insira o cartão SD para jogar.":"Executável não encontrado.",1)}
-const badges=g=>`<div class="badges"><span class="bd">${g.s==="sd"?"SD Card":(SN[g.store]||g.platform||"PC")}</span>${g.genre?`<span class="bd">${g.genre}</span>`:""}${g.rating!=null?`<span class="bd">★ ${Number(g.rating).toFixed(1)}</span>`:""}${act(g)?`<span class="bd ok">Pronto para jogar</span>`:`<span class="bd warn">Insira o cartão SD</span>`}</div>`;
+const badges=g=>`<div class="badges"><span class="bd">${g.s==="sd"?"SD Card":g.s==="disc"?"💿 Disco · "+esc(g.platform||""):(SN[g.store]||g.platform||"PC")}</span>${g.genre?`<span class="bd">${g.genre}</span>`:""}${g.rating!=null?`<span class="bd">★ ${Number(g.rating).toFixed(1)}</span>`:""}${act(g)?`<span class="bd ok">Pronto para jogar</span>`:`<span class="bd warn">Insira o cartão SD</span>`}</div>`;
 /* grupos: PC e lojas primeiro, depois cada sistema do RetroBat (Ports, Wii U…) */
-const hash=t=>{let h=7;for(const c of String(t))h=(h*31+c.charCodeAt(0))>>>0;return h%360};const GK=g=>g.sys||"";const GN=g=>g.sys?(g.sysn||g.sys):"PC e lojas";
+const hash=t=>{let h=7;for(const c of String(t))h=(h*31+c.charCodeAt(0))>>>0;return h%360};const GK=g=>g.s==="disc"?"@disc":g.sys||"";const GN=g=>g.s==="disc"?"Discos":g.sys?(g.sysn||g.sys):"PC e lojas";
 function groups(list){const m=new Map();list.forEach(g=>{const k=GK(g);if(!m.has(k))m.set(k,{k,n:GN(g),items:[]});m.get(k).items.push(g)});
- return[...m.values()].sort((a,b)=>(a.k===""?-1:b.k===""?1:a.n.localeCompare(b.n)))}
+ const rank=k=>k==="@disc"?0:k===""?1:2;  // discos no leitor primeiro, depois PC e lojas, depois os sistemas
+ return[...m.values()].sort((a,b)=>rank(a.k)-rank(b.k)||a.n.localeCompare(b.n))}
 S.fold=S.fold||new Set();
 /* sistema aberto pela aba Emuladores: Detalhes mostra só os jogos dele */
 function sysOpen(k){S.sysf=k;const i=G.findIndex(g=>g.sys===k);if(i>=0)S.sel=i;S.fold.delete(k);tab("det");render()}
 function list(){const q=S.q.toLowerCase(),l=G.filter(g=>g.n.toLowerCase().includes(q)&&(!S.sysf||g.sys===S.sysf)),gs=groups(l),many=gs.length>1,selk=G[S.sel]?GK(G[S.sel]):"";
  const sf=S.sysf?(G.find(g=>g.sys===S.sysf)||{}).sysn||S.sysf:"";
- $("#list").innerHTML=(sf?`<div class="sysf" style="--h1:${hash(S.sysf)}"><b>${esc(sf)}</b><button id="sysx">✕ Ver todos</button></div>`:"")+gs.map(gr=>{const fold=many&&!q&&S.fold.has(gr.k)&&gr.k!==selk;return(many?`<div class="lgh${fold?" fold":""}" data-g="${esc(gr.k)}"><i>▾</i><b>${esc(gr.n)}</b><span>${gr.items.length}</span></div>`:"")+(fold?"":gr.items.map(g=>{const i=G.indexOf(g);return `<div class="li${i===S.sel?" sel":""}${act(g)?"":" off"}" data-i="${i}" style="--h1:${g.h[0]};--h2:${g.h[1]}"><div class="ic">${g.ic?`<img src="${g.ic}" alt="">`:g.n[0]}</div><div style="min-width:0"><div class="nm">${g.n}</div><div class="sb">${g.s==="sd"?(act(g)?"SD · conectado":"SD · desconectado"):(g.platform||"PC")+(g.genre?" · "+g.genre:"")}</div></div></div>`}).join(""))}).join("");
+ $("#list").innerHTML=(sf?`<div class="sysf" style="--h1:${hash(S.sysf)}"><b>${esc(sf)}</b><button id="sysx">✕ Ver todos</button></div>`:"")+gs.map(gr=>{const fold=many&&!q&&S.fold.has(gr.k)&&gr.k!==selk;return(many?`<div class="lgh${fold?" fold":""}" data-g="${esc(gr.k)}"><i>▾</i><b>${esc(gr.n)}</b><span>${gr.items.length}</span></div>`:"")+(fold?"":gr.items.map(g=>{const i=G.indexOf(g);return `<div class="li${i===S.sel?" sel":""}${act(g)?"":" off"}" data-i="${i}" style="--h1:${g.h[0]};--h2:${g.h[1]}"><div class="ic">${g.ic?`<img src="${g.ic}" alt="">`:g.n[0]}</div><div style="min-width:0"><div class="nm">${g.n}</div><div class="sb">${g.s==="sd"?(act(g)?"SD · conectado":"SD · desconectado"):g.s==="disc"?(g.drive?"💿 No leitor "+esc(g.drive.replace(/\\$/,"")):"💿 Disco fora do leitor"):(g.platform||"PC")+(g.genre?" · "+g.genre:"")}</div></div></div>`}).join(""))}).join("");
  $("#list").querySelectorAll(".li").forEach(e=>e.onclick=()=>pick(+e.dataset.i));
  if($("#sysx"))$("#sysx").onclick=()=>{S.sysf="";list()};
  $("#list").querySelectorAll(".lgh").forEach(e=>e.onclick=()=>{const k=e.dataset.g;S.fold.has(k)?S.fold.delete(k):S.fold.add(k);list()})}
@@ -382,7 +383,7 @@ function lib(){$("#lc").textContent=G.length+" jogos · "+G.filter(act).length+"
  }
 function con(){cnRender()}
 function sd(){const on=S.sd,i=S.info||{};$("#sd").classList.toggle("in",on);$("#sdt").innerHTML=on?`<b>SD ${i.drive}</b> <span class="x">· ${i.free} livres</span>`:`Nenhum cartão`;$("#csd").textContent=on?"● SD conectado":"○ Sem SD";$(".bar").style.opacity=on?1:.3;$(".bar i").style.width=Math.round((on?i.used:0)*100)+"%"}
-function render(){sd();if(!G.length){list();lib();$("#det").innerHTML=`<div class="info"><h1>Nenhum jogo ainda</h1><p class="desc">Insira um cartão SD com o jogo para ele aparecer aqui.</p><button class="play" id="add3" style="margin-top:22px">+ Adicionar jogo</button></div>`;$("#add3").onclick=()=>openForm();return}list();detail();lib();if(S.con)con()}
+function render(){sd();if(!G.length){list();lib();$("#det").innerHTML=`<div class="info"><h1>Nenhum jogo ainda</h1><p class="desc">Insira um cartão SD com o jogo, ou coloque um disco de PS1/PS2 no leitor, para ele aparecer aqui.</p><button class="play" id="add3" style="margin-top:22px">+ Adicionar jogo</button></div>`;$("#add3").onclick=()=>openForm();return}list();detail();lib();if(S.con)con()}
 function tab(t){S.tab=t;["det","lib","emu","set"].forEach(k=>{const b=$("#t-"+k);if(b)b.classList.toggle("on",t===k);$("#v-"+k).classList.toggle("on",t===k)});$("#gear").classList.toggle("on",t==="set");render();if(t==="emu")emuLoad();if(t==="set")setLoad()}
 function setCon(v){if(v&&!S.con&&SFXST.intro!==false)introPlay();if(v&&!S.con)FA().sfx_preload();S.con=v;document.body.classList.toggle("incon",v);if(API())API().set_fullscreen(v);$("#con").classList.toggle("on",v);$("#cbtn").style.display=v?"none":"flex";
  if(v){CN.tab=0;CN.esys="";CN.rbst=null;CN.rbem=null;FA().retrobat_status().then(r=>{CN.rbst=r;const was=CN.rbin;CN.rbin=!!r.in_games;if(was!==CN.rbin&&S.con&&CN.tab===0)cnGames()});S.ci=Math.max(0,Math.min(S.sel,G.length-1));CN.dlg=false;CN.osk=null;$("#cdlg").classList.remove("on");cnTab(CN.tab);cnBgLoad()}else{CN.bgTok++;if(G[S.sel])hue(G[S.sel])}}
@@ -1025,7 +1026,7 @@ function cnGames(){const m=$("#cmain"),vis=CV();
  if(!vis.includes(S.ci))S.ci=vis[0];
  m.innerHTML=`<div class="hero" id="hero"></div><div class="row" id="row">${vis.map(i=>{const g=G[i];return`<div class="tile${act(g)?"":" off"}" data-i="${i}" style="--h1:${g.h[0]};--h2:${g.h[1]}">${cover(g,tag(g))}</div>`}).join("")}</div>`;cnSel(true)}
 function cnSel(jump){const g=G[S.ci];hue(g);
- $("#hero").innerHTML=`<h1>${esc(g.n)}</h1>${badges(g)}<p>${esc(g.d||"")}</p><div><button class="play${act(g)?"":" dis"}" id="cpl">${act(g)?"▶ Jogar":"Indisponível"}</button></div>`;
+ $("#hero").innerHTML=`<h1>${esc(g.n)}</h1>${badges(g)}<p>${esc(g.d||"")}</p><div><button class="play${act(g)?"":" dis"}" id="cpl">${act(g)?"▶ Jogar":g.s==="disc"&&!g.drive?"💿 Coloque o disco":"Indisponível"}</button></div>`;
  const r=$("#row");[...r.children].forEach(t=>t.classList.toggle("sel",+t.dataset.i===S.ci));const t=r.querySelector(`[data-i="${S.ci}"]`)||r.children[0];r.scrollTo({left:t.offsetLeft-r.offsetLeft-44,behavior:jump?"auto":"smooth"});cnBg(g)}
 function cnMove(d){const v=CV(),p=v.indexOf(S.ci),n=v[Math.max(0,Math.min(v.length-1,p+d))];if(n!==undefined&&n!==S.ci){S.ci=n;cnSel()}}
 /* aba Emuladores: sistemas (com os jogos de cada um) e emuladores do RetroBat */
@@ -1247,7 +1248,9 @@ function cnBat(){if(!navigator.getBattery)return;navigator.getBattery().then(b=>
 window.consoleBoot=()=>{CN.kiosk=true;if(!S.con)setCon(true);else cnHints()};cnBat();
 clk();setInterval(clk,30000);render();poll();
 async function load(msg){const a=API();if(!a)return;BGC.clear();const id=(G[S.sel]||{}).id;G=await a.get_games();if(!load.folded){load.folded=1;G.forEach(g=>{if(g.sys)S.fold.add(g.sys)})}S.sel=Math.max(0,G.findIndex(g=>g.id===id));if(S.ci>=G.length)S.ci=0;render();if(typeof msg==="string"&&msg)toast(msg,/removido/.test(msg))}
-window.gamesChanged=load;window.sdTick=i=>{S.sd=!!i;if(i)S.info=i;sd()};window.consoleWake=()=>{if(!S.con)setCon(true)};
+window.gamesChanged=load;
+window.discIn=p=>{let n=0;const go=()=>{const i=G.findIndex(g=>g.id===p.id);if(i<0){if(++n<15)setTimeout(go,200);return}  // espera a biblioteca recarregar
+ if(S.con){if($("#cdlg").classList.contains("on"))return;if(CN.tab!==0)cnTab(0);S.ci=i;cnSel()}else if(S.tab==="det")pick(i)};setTimeout(go,150)};window.sdTick=i=>{S.sd=!!i;if(i)S.info=i;sd()};window.consoleWake=()=>{if(!S.con)setCon(true)};
 addEventListener("pywebviewready",()=>load().then(wizardCheck));
 if(!API()&&!INAPP)setTimeout(wizardCheck,500); // só na prévia do navegador
 addEventListener("pywebviewready",()=>{FA().update_status().then(st=>{UPD=st});FA().retrobat_setup_status().then(st=>{RBS=st;rbsPill()});FA().sfx_status().then(st=>Object.assign(SFXST,st))});
