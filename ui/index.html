@@ -357,9 +357,9 @@ function toast(t,warn){if(warn&&S.con)sfx("error");const e=$("#toast");e.textCon
 async function launch(g){if(!g)return;const a=API();if(a){const r=await a.launch_game(g.id);r.ok?toast("▶  Iniciando "+g.n+"…"):toast(r.msg,1);return}act(g)?toast("▶  Iniciando "+g.n+"…"):toast(g.s==="sd"?"Insira o cartão SD para jogar.":"Executável não encontrado.",1)}
 const badges=g=>`<div class="badges"><span class="bd">${g.s==="sd"?"SD Card":g.s==="disc"?"💿 Disco · "+esc(g.platform||""):(SN[g.store]||g.platform||"PC")}</span>${g.genre?`<span class="bd">${g.genre}</span>`:""}${g.rating!=null?`<span class="bd">★ ${Number(g.rating).toFixed(1)}</span>`:""}${act(g)?`<span class="bd ok">Pronto para jogar</span>`:`<span class="bd warn">Insira o cartão SD</span>`}</div>`;
 /* grupos: PC e lojas primeiro, depois cada sistema do RetroBat (Ports, Wii U…) */
-const hash=t=>{let h=7;for(const c of String(t))h=(h*31+c.charCodeAt(0))>>>0;return h%360};const GK=g=>g.s==="disc"?"@disc":g.sys||"";const GN=g=>g.s==="disc"?"Discos":g.sys?(g.sysn||g.sys):"PC e lojas";
+const hash=t=>{let h=7;for(const c of String(t))h=(h*31+c.charCodeAt(0))>>>0;return h%360};const GK=g=>g.sys||"";const GN=g=>g.sys?(g.sysn||g.sys):"PC e lojas";  // discos físicos entram no sistema deles (ps2, psx…)
 function groups(list){const m=new Map();list.forEach(g=>{const k=GK(g);if(!m.has(k))m.set(k,{k,n:GN(g),items:[]});m.get(k).items.push(g)});
- const rank=k=>k==="@disc"?0:k===""?1:2;  // discos no leitor primeiro, depois PC e lojas, depois os sistemas
+ const rank=k=>k===""?0:1;  // PC e lojas primeiro, depois os sistemas
  return[...m.values()].sort((a,b)=>rank(a.k)-rank(b.k)||a.n.localeCompare(b.n))}
 S.fold=S.fold||new Set();
 /* sistema aberto pela aba Emuladores: Detalhes mostra só os jogos dele */
@@ -1250,7 +1250,10 @@ clk();setInterval(clk,30000);render();poll();
 async function load(msg){const a=API();if(!a)return;BGC.clear();const id=(G[S.sel]||{}).id;G=await a.get_games();if(!load.folded){load.folded=1;G.forEach(g=>{if(g.sys)S.fold.add(g.sys)})}S.sel=Math.max(0,G.findIndex(g=>g.id===id));if(S.ci>=G.length)S.ci=0;render();if(typeof msg==="string"&&msg)toast(msg,/removido/.test(msg))}
 window.gamesChanged=load;
 window.discIn=p=>{let n=0;const go=()=>{const i=G.findIndex(g=>g.id===p.id);if(i<0){if(++n<15)setTimeout(go,200);return}  // espera a biblioteca recarregar
- if(S.con){if($("#cdlg").classList.contains("on"))return;if(CN.tab!==0)cnTab(0);S.ci=i;cnSel()}else if(S.tab==="det")pick(i)};setTimeout(go,150)};window.sdTick=i=>{S.sd=!!i;if(i)S.info=i;sd()};window.consoleWake=()=>{if(!S.con)setCon(true)};
+ const g=G[i];if(S.con){if($("#cdlg").classList.contains("on"))return;
+  if(g.sys&&!CN.rbin){if(CN.tab!==3)cnTab(3);if(CN.esys!==g.sys)cnSysEnter(g.sys);S.ci=i;cnSel()}  // disco de PS2 abre em Emuladores → PS2
+  else{if(CN.tab!==0)cnTab(0);S.ci=i;cnSel()}}
+ else if(S.tab==="det"){if(S.sysf&&S.sysf!==g.sys){S.sysf="";render()}pick(i)}};setTimeout(go,150)};window.sdTick=i=>{S.sd=!!i;if(i)S.info=i;sd()};window.consoleWake=()=>{if(!S.con)setCon(true)};
 addEventListener("pywebviewready",()=>load().then(wizardCheck));
 if(!API()&&!INAPP)setTimeout(wizardCheck,500); // só na prévia do navegador
 addEventListener("pywebviewready",()=>{FA().update_status().then(st=>{UPD=st});FA().retrobat_setup_status().then(st=>{RBS=st;rbsPill()});FA().sfx_status().then(st=>Object.assign(SFXST,st))});

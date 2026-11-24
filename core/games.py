@@ -607,8 +607,30 @@ class GameService:
         return added, skipped
 
     # ---------- dados pra interface ----------
-    def to_ui(self, key, g, mounted=None):
+    def _sys_names(self, items):
+        """rb_system -> nome do sistema, tirado das ROMs do RetroBat (para o disco cair no mesmo grupo e nome)."""
+        out = {}
+        for _, g in items:
+            if g.get("launch_type") == "retrobat" and g.get("rb_system") and g.get("rb_system_name"):
+                out.setdefault(g["rb_system"], g["rb_system_name"])
+        return out
+
+    def _sys(self, g, names):
+        """(sistema, nome) do jogo na aba Emuladores: ROMs do RetroBat e discos físicos (ps2, psx…)."""
+        if g.get("launch_type") == "retrobat":
+            return g.get("rb_system", ""), g.get("rb_system_name", "")
+        if g.get("launch_type") == "disc" and g.get("disc_system"):
+            from .discs import RB_NAMES, SYSTEMS
+            k = g["disc_system"]
+            return k, names.get(k) or RB_NAMES.get(k) or SYSTEMS.get(k, k)
+        return "", ""
+
+    def to_ui(self, key, g, mounted=None, names=None):
         mounted = self.mounted() if mounted is None else mounted
+        if names is None:
+            with self.lock:
+                names = self._sys_names(list(self.catalog.items()))
+        sys_k, sys_n = self._sys(g, names)
         cover, hue = load_art(resolve(g.get("cover")), "cover")
         icon, _ = load_art(resolve(g.get("icon")), "icon")
         h1 = hue if hue is not None else hash_hue(g.get("name", key))
@@ -626,8 +648,7 @@ class GameService:
             "size": dash("size"), "time": dash("playtime"),
             "h": [h1, (h1 + 40) % 360], "img": cover, "ic": icon,
             "store": g.get("store", ""), "lt": g.get("launch_type") or "direct",
-            "sys": g.get("rb_system", "") if g.get("launch_type") == "retrobat" else "",
-            "sysn": g.get("rb_system_name", "") if g.get("launch_type") == "retrobat" else "",
+            "sys": sys_k, "sysn": sys_n,
             "rating": g["rating"] if isinstance(g.get("rating"), (int, float)) else None,
             "has_hero": bool((p := resolve(g.get("hero"))) and p.is_file()),
         }
@@ -635,5 +656,5 @@ class GameService:
     def list_ui(self):
         with self.lock:
             items = list(self.catalog.items())
-        mounted = self.mounted()
-        return [self.to_ui(k, g, mounted) for k, g in sorted(items, key=lambda kv: kv[0].casefold())]
+        mounted, names = self.mounted(), self._sys_names(items)
+        return [self.to_ui(k, g, mounted, names) for k, g in sorted(items, key=lambda kv: kv[0].casefold())]

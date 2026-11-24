@@ -679,7 +679,7 @@ def main():
     overlay = api._overlay = OverlayService(LIBRARY / "achicons", app)
     ra = api._ra = RetroAchievementsService(app, retrobat, LIBRARY)
     retrobat.on_launch = ra.on_launch
-    discs = service.discs = api._discs = DiscService(retrobat, app)
+    discs = service.discs = api._discs = DiscService(retrobat, app, log_dir=LIBRARY)
     discs.on_launch = ra.on_launch  # conquistas por cima do jogo também nos discos
     app_dir = Path(sys.executable).parent if getattr(sys, "frozen", False) else HERE
     overlay.sfx = api._sfx = SfxService([DATA / "SFX", app_dir / "SFX"], app)

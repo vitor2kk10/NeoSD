@@ -8,7 +8,7 @@ Reconhecer:
     Sem banco: usa o rótulo do disco.
   - Discos de Saturn/Sega CD são reconhecidos pelo cabeçalho, mas os emuladores deles não leem do leitor do PC.
 Jogar (emuladores do RetroBat, com as configurações que o RetroBat já gravou neles: BIOS, controle, tela cheia):
-  - PS2: pcsx2-qt.exe -disc D: -fullscreen -batch   ("-disc: uses the specified host DVD drive as a source")
+  - PS2: pcsx2-qt.exe -disc D:\\ -fullscreen -batch   ("-disc: uses the specified host DVD drive as a source")
   - PS1: DuckStation com o caminho de dispositivo \\\\.\\D: (instalável pelo menu de emuladores do RetroBat).
 """
 import ctypes
@@ -23,6 +23,7 @@ from pathlib import Path
 log = logging.getLogger("neosd.discs")
 DRIVE_CDROM = 5
 SYSTEMS = {"ps2": "PlayStation 2", "psx": "PlayStation", "saturn": "Sega Saturn", "segacd": "Sega CD"}
+RB_NAMES = {"ps2": "Sony PlayStation 2", "psx": "Sony PlayStation", "saturn": "Sega Saturn", "segacd": "Sega CD"}
 PLAYABLE = ("ps2", "psx")
 SERIAL_RE = re.compile(r"([A-Z]{4})[_\-]?(\d{3})\.?(\d{2})", re.I)
 
@@ -110,8 +111,8 @@ class GameDB:
 
 
 class DiscService:
-    def __init__(self, retrobat, settings=None, runner=None):
-        self.rb, self.settings = retrobat, settings
+    def __init__(self, retrobat, settings=None, runner=None, log_dir=None):
+        self.rb, self.settings, self.log_dir = retrobat, settings, log_dir
         self.db = GameDB()
         self._popen = runner or subprocess.Popen
         self.on_launch = lambda system, drive, proc: None  # ex.: RetroAchievements durante o jogo
@@ -214,8 +215,15 @@ class DiscService:
     def command(self, system, drive):
         letter = drive.rstrip("\\/")  # "D:"
         if system == "ps2":
+            # O PCSX2 confere o leitor com GetDriveType("D:\\") e depois tira a última letra para abrir "\\.\D:".
+            # Com "D:" (sem a barra) ele abria "\\.\D" e dava "CDVD: drive não encontrado". Tem que ser "D:\\".
             exe = self.pcsx2()
-            return [str(exe), "-disc", letter, "-fullscreen", "-batch"] if exe else None
+            if not exe:
+                return None
+            cmd = [str(exe), "-disc", letter + "\\", "-fullscreen", "-batch"]
+            if self.log_dir:  # registro do PCSX2 só deste disco, para investigar se o jogo não abrir
+                cmd[1:1] = ["-logfile", str(Path(self.log_dir) / "pcsx2-disco.log")]
+            return cmd
         if system == "psx":
             exe = self.duckstation()
             return [str(exe), "-fullscreen", "-batch", "--", "\\\\.\\" + letter] if exe else None
