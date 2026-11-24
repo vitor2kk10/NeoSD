@@ -1,0 +1,16 @@
+__pycache__/
+.venv-build/
+build/
+dist/
+library/
+catalog.json
+emulators.json
+app_settings.json
+third_party/
+chaves.local.json
+core/scraper/_builtin_keys.py
+core/_build_info.py
+# sons de terceiros (PS5/Sony): só no seu PC, nunca no GitHub
+SFX/
+# instaladores baixados
+downloads/

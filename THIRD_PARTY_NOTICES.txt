@@ -1,0 +1,30 @@
+NeoSD - componentes de terceiros
+================================
+
+O NeoSD é distribuído junto com os componentes abaixo. Cada um continua sob a sua própria licença.
+
+RetroBat (motor de emulação, instalado à parte pelo usuário)
+  https://www.retrobat.org - https://github.com/RetroBat-Official
+  RetroBat (c) 2017-2019 Adrien Chalard "Kayl", (c) 2020-2026 RetroBat Team.
+  Código da equipe RetroBat: LGPL v3. Conteúdo escrito e gráfico: CC BY-NC-SA 4.0. Uso não comercial.
+  O NeoSD não é afiliado nem endossado pela equipe do RetroBat. O NeoSD não inclui, não modifica e não
+  redistribui arquivos do RetroBat: ele usa a instalação feita a partir do site oficial e chama o
+  emulatorLauncher como programa externo. Emuladores, nomes e logos pertencem aos respectivos projetos.
+  Quando o usuário pede ("Baixar e instalar o RetroBat"), o NeoSD baixa o instalador oficial, sem
+  modificações, direto do GitHub do projeto (github.com/RetroBat-Official/retrobat) e o abre; a licença
+  e a pasta de instalação são aceitas e escolhidas pelo próprio usuário no instalador do RetroBat.
+
+AnyFSE (opcional, em third_party\AnyFSE)
+  https://github.com/ashpynov/AnyFSE - licença MIT. Instalador oficial, sem modificações.
+  Texto da licença: third_party\AnyFSE\LICENSE.txt
+
+Bibliotecas Python empacotadas no NeoSD.exe
+  pywebview   - https://github.com/r0x0r/pywebview   - BSD 3-Clause
+  pythonnet   - https://github.com/pythonnet/pythonnet - MIT
+  Pillow      - https://github.com/python-pillow/Pillow - MIT-CMU (HPND)
+  requests    - https://github.com/psf/requests       - Apache 2.0
+  pywin32     - https://github.com/mhammond/pywin32   - PSF
+  Python      - https://www.python.org                - PSF License
+
+Microsoft Edge WebView2 Runtime
+  Baixado do site da Microsoft durante a instalação, apenas quando o Windows ainda não o tem.

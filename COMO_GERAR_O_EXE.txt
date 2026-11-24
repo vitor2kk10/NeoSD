@@ -1,0 +1,46 @@
+NEO SD - como gerar o .exe e o instalador
+===========================================
+
+OPÇÃO 1 - no seu PC com Windows (mais simples)
+  1. Tenha o Python 3.10+ instalado (python.org, marque "Add python.exe to PATH").
+  2. Dê dois cliques em build.bat.
+     Ele cria um ambiente só para o build, instala as dependências, gera o NeoSD.exe
+     e, se o Inno Setup não estiver instalado, tenta instalar sozinho pelo winget.
+  3. No fim abre a pasta dist com:
+       NeoSD-Setup-1.0.0.exe      -> instalador (leve este para a outra máquina)
+       NeoSD-Portable-1.0.0.zip   -> versão sem instalar (descompacte e abra NeoSD.exe)
+
+OPÇÃO 2 - na nuvem do GitHub (sem instalar nada)
+  1. Suba esta pasta para um repositório no GitHub.
+  2. Aba Actions > "Build Windows" > Run workflow.
+  3. Ao terminar, baixe "NeoSD-Windows" em Artifacts.
+
+ONDE FICAM OS DADOS
+  Instalado:  %LOCALAPPDATA%\NeoSD   (catálogo, capas, configurações, log)
+  Portátil:   dentro da própria pasta (por causa do arquivo portable.txt)
+  Rodando pelo Python (run.bat): ao lado do main.py, como antes.
+  Para levar sua biblioteca atual para a versão instalada, copie catalog.json, emulators.json
+  e a pasta library para %LOCALAPPDATA%\NeoSD.
+  Se você já tinha instalado a versão com o nome antigo (RetroSD), a pasta %LOCALAPPDATA%\RetroSD
+  é aproveitada automaticamente na primeira vez que o NeoSD abrir.
+
+ANYFSE (usar o NeoSD no lugar do app Xbox)
+  O build.bat baixa o instalador oficial do AnyFSE (licença MIT) e a licença dele, e coloca em
+  third_party\AnyFSE. O instalador do NeoSD então mostra a opção "Instalar o AnyFSE", e o NeoSD
+  também oferece instalar pelos Primeiros passos e em Configurações → Modo Xbox.
+  Para gerar sem o AnyFSE: rode  set NEOSD_NO_ANYFSE=1  antes do build.bat.
+  Depois de instalado, falta um passo manual: na configuração do AnyFSE, escolha "executável
+  personalizado" e cole o Programa e os Argumentos (o NeoSD tem um botão para copiar).
+  Para automatizar esse passo no futuro: configure o AnyFSE uma vez e rode
+  tools\anyfse-diagnostico.ps1 ; ele gera anyfse-diagnostico.txt na Área de Trabalho.
+
+NA OUTRA MÁQUINA
+  - Windows 10/11 64 bits. O instalador baixa o Microsoft Edge WebView2 se faltar.
+  - Não precisa de Python.
+  - O Windows SmartScreen pode avisar "editor desconhecido" (o .exe não tem assinatura digital):
+    clique em "Mais informações" > "Executar assim mesmo".
+  - Se algo der errado ao abrir, aparece uma janela com o erro, e os detalhes ficam em
+    %LOCALAPPDATA%\NeoSD\library\neosd.log
+
+VERSÃO
+  Mude o número no arquivo VERSION antes de gerar uma nova versão.

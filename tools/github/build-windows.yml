@@ -1,0 +1,100 @@
+# Publica uma versão do NeoSD: o GitHub gera o instalador numa máquina Windows e cria um Release.
+# Como usar: aba Actions > "Publicar versão do NeoSD" > Run workflow > escolha o canal > Run workflow.
+#   teste   -> pre-release (tag v1.6.0-teste.N): só quem ligou "Receber versões de teste" no NeoSD recebe.
+#   estavel -> versão para todo mundo (tag v1.6.0). Lembre de aumentar o número no arquivo VERSION antes.
+# Credenciais do ScreenScraper: Settings > Secrets and variables > Actions > NEOSD_SS_DEVID e NEOSD_SS_DEVPASSWORD.
+# Código privado? Crie um repositório público só para os instaladores, coloque o nome dele na variável
+# NEOSD_RELEASES_REPO (ex.: vitor/NeoSD-releases) e um token com acesso a ele no secret RELEASES_TOKEN.
+name: Publicar versão do NeoSD
+on:
+  workflow_dispatch:
+    inputs:
+      canal:
+        description: "teste = só o seu PC de testes; estavel = todo mundo"
+        type: choice
+        options: [teste, estavel]
+        default: teste
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      NEOSD_CHANNEL: ${{ github.event_name == 'push' && 'estavel' || inputs.canal }}
+      NEOSD_BUILD: ${{ github.run_number }}
+      NEOSD_REPO: ${{ vars.NEOSD_RELEASES_REPO || github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Versão e nome do Release
+        id: v
+        shell: pwsh
+        run: |
+          $ver = (Get-Content VERSION -Raw).Trim()
+          if ($env:NEOSD_CHANNEL -eq "estavel") { $tag = "v$ver"; $name = "NeoSD $ver" }
+          else { $tag = "v$ver-teste.$env:NEOSD_BUILD"; $name = "NeoSD $ver (teste $env:NEOSD_BUILD)" }
+          if ("${{ github.event_name }}" -eq "push") { $tag = "${{ github.ref_name }}" }
+          elseif ($env:NEOSD_CHANNEL -eq "estavel" -and -not "${{ vars.NEOSD_RELEASES_REPO }}") {
+            git fetch --tags --quiet
+            if (git tag --list $tag) { throw "A versão $ver já foi publicada como estável. Aumente o número no arquivo VERSION." }
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "name=$name" >> $env:GITHUB_OUTPUT
+          "ver=$ver" >> $env:GITHUB_OUTPUT
+          Write-Host "Publicando $name ($tag)"
+      - name: Dependências
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt "pyinstaller>=6.6"
+      - name: Informações do build e credenciais embutidas
+        env:
+          NEOSD_SS_DEVID: ${{ secrets.NEOSD_SS_DEVID }}
+          NEOSD_SS_DEVPASSWORD: ${{ secrets.NEOSD_SS_DEVPASSWORD }}
+        run: |
+          python tools/build_info.py
+          python tools/embutir_chaves.py
+      - name: .exe (PyInstaller)
+        run: python -m PyInstaller NeoSD.spec --noconfirm --clean
+      - name: Extras (ferramentas, avisos e AnyFSE)
+        shell: pwsh
+        run: |
+          Copy-Item tools dist\NeoSD\tools -Recurse -Force
+          Copy-Item THIRD_PARTY_NOTICES.txt dist\NeoSD\
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\baixar-anyfse.ps1 -Dest dist\NeoSD\third_party\AnyFSE
+          exit 0
+      - name: Instalador (Inno Setup) e versão portátil
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.v.outputs.ver }}"
+          $iscc = Get-ChildItem "C:\Program Files*\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup -y --no-progress | Out-Null
+            $iscc = Get-ChildItem "C:\Program Files*\Inno Setup *\ISCC.exe" | Select-Object -First 1
+          }
+          & $iscc.FullName /Qp "/DAppVersion=$ver" installer\NeoSD.iss
+          if ($LASTEXITCODE -ne 0) { throw "O Inno Setup falhou." }
+          "Este arquivo faz o NEO SD guardar os dados nesta pasta (modo portatil)." | Out-File dist\NeoSD\portable.txt -Encoding utf8
+          Compress-Archive -Path dist\NeoSD -DestinationPath "dist\NeoSD-Portable-$ver.zip" -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NeoSD-Windows
+          path: |
+            dist/NeoSD-Setup-*.exe
+            dist/NeoSD-Portable-*.zip
+      - name: Publicar o Release (o NeoSD procura aqui as atualizações)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          name: ${{ steps.v.outputs.name }}
+          prerelease: ${{ env.NEOSD_CHANNEL == 'teste' }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          repository: ${{ vars.NEOSD_RELEASES_REPO || github.repository }}
+          token: ${{ secrets.RELEASES_TOKEN || github.token }}
+          files: |
+            dist/NeoSD-Setup-*.exe
+            dist/NeoSD-Portable-*.zip

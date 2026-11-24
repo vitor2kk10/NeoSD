@@ -1,0 +1,4 @@
+pywebview>=5.0
+pillow>=10.0
+pywin32>=306
+requests>=2.31
