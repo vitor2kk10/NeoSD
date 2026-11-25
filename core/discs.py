@@ -25,7 +25,26 @@ DRIVE_CDROM = 5
 SYSTEMS = {"ps2": "PlayStation 2", "psx": "PlayStation", "saturn": "Sega Saturn", "segacd": "Sega CD"}
 RB_NAMES = {"ps2": "Sony PlayStation 2", "psx": "Sony PlayStation", "saturn": "Sega Saturn", "segacd": "Sega CD"}
 PLAYABLE = ("ps2", "psx")
+DISC_EMU = {"ps2": "pcsx2", "psx": "duckstation"}  # disco físico abre direto nestes emuladores
 SERIAL_RE = re.compile(r"([A-Z]{4})[_\-]?(\d{3})\.?(\d{2})", re.I)
+
+
+def disc_set(game):
+    """Discos de um jogo do catálogo: [{serial, vserial, label, n, ra_hashes, ra_id}]. Cadastros antigos (1.7.0/1.7.2)
+    tinham só disc_serial/disc_vserial: viram uma lista de um disco."""
+    ds = game.get("disc_set")
+    if ds:
+        return ds
+    if game.get("disc_serial") or game.get("disc_vserial"):
+        return [{"serial": game.get("disc_serial", ""), "vserial": game.get("disc_vserial", ""),
+                 "label": game.get("disc_label", ""), "n": 0}]
+    return []
+
+
+def disc_match(d, info):
+    if info.get("serial"):
+        return d.get("serial") == info["serial"]
+    return bool(d.get("vserial")) and d.get("vserial") == info.get("vserial")
 
 
 # ---------- leitor e disco ----------
@@ -116,6 +135,7 @@ class DiscService:
         self.db = GameDB()
         self._popen = runner or subprocess.Popen
         self.on_launch = lambda system, drive, proc: None  # ex.: RetroAchievements durante o jogo
+        self._proc = None
         self.current = {}  # leitor -> o que foi reconhecido quando o disco entrou (a tela consulta isto, sem girar o disco)
 
     def insert(self, drive):
@@ -190,6 +210,12 @@ class DiscService:
         pretty = re.sub(r"\s+", " ", (label or "").replace("_", " ")).strip()
         info.update(system=system, serial=serial, region=db.get("region", ""),
                     name=db.get("name-en") or db.get("name") or db.get("title") or pretty or serial or "Disco sem nome")
+        # jogo de vários discos: "Final Fantasy IX (Disc 2)" no banco ou "FF9_DISC2" no rótulo
+        from .multidisc import split_disc
+        base, n = split_disc(info["name"])
+        if not n and label:
+            n = split_disc(label.replace("_", " "))[1]
+        info.update(base=base, disc_n=n)
         if system not in PLAYABLE:
             info["why"] = (f"Disco de {SYSTEMS[system]}: os emuladores dele não leem direto do leitor do PC. "
                            "Para jogar, copie o disco para uma imagem (.cue/.bin) e coloque na pasta do RetroBat.")
@@ -203,13 +229,25 @@ class DiscService:
         return info
 
     def find(self, game):
-        """Leitor com o disco DESTE jogo agora (pelo código do jogo; sem código, pelo nº de série do volume)."""
-        for d, info in list(self.current.items()):
-            if game.get("disc_serial") and info.get("serial") == game["disc_serial"]:
-                return d
-            if not game.get("disc_serial") and game.get("disc_vserial") and info.get("vserial") == game["disc_vserial"]:
-                return d
+        """Leitor com um disco DESTE jogo agora (pelo código do jogo; sem código, pelo nº de série do volume)."""
+        hit = self.find_disc(game)
+        return hit[0] if hit else None
+
+    def find_disc(self, game):
+        """-> (leitor, posição do disco no jogo: 1, 2…) ou None. Jogos de vários discos aceitam qualquer um deles."""
+        for drive, info in list(self.current.items()):
+            for i, d in enumerate(disc_set(game)):
+                if disc_match(d, info):
+                    return drive, d.get("n") or i + 1
         return None
+
+    def running(self):
+        """Um jogo de disco aberto pelo NeoSD ainda está rodando (troca de disco no meio do jogo)."""
+        p = self._proc
+        try:
+            return bool(p) and p.poll() is None
+        except Exception:
+            return False
 
     # ---------- jogar ----------
     def command(self, system, drive):
@@ -239,6 +277,7 @@ class DiscService:
             proc = self._popen(cmd, cwd=str(Path(cmd[0]).parent))
         except OSError as e:
             return False, f"Não consegui abrir o emulador: {e}"
+        self._proc = proc
         try:
             self.on_launch(system, drive, proc)
         except Exception:

@@ -228,6 +228,12 @@ class Api:
         s = self._rb.system(system)
         if not s or not os.path.exists(path):
             return {"ok": False, "msg": "Sistema ou arquivo inválido."}
+        if ".m3u" in s.get("extensions", ()) and self._app.get("rb_auto_m3u", True):
+            from core.multidisc import siblings, split_disc, write_m3u
+            sib = siblings(path, set(s["extensions"]) - {".m3u"})
+            m3u = write_m3u(os.path.dirname(path), sib[0], sib[1]) if sib else None
+            if m3u:  # "Jogo (Disc 1).cue" escolhido: entra o jogo inteiro, com todos os discos
+                path, name = m3u, split_disc(name or "")[0] or sib[0]
         item = {"store": "retrobat", "store_id": f"{system}:{os.path.normcase(path)}", "name": (name or "").strip(),
                 "install_path": "", "launch_type": "retrobat", "launch_uri": "", "exe_path": "", "rom_path": path,
                 "rb_system": system, "rb_system_name": s["fullname"], "platform": s["fullname"], "size": "",
@@ -265,6 +271,94 @@ class Api:
         ok, msg = self._rb.open_emulator(emu_id)
         return {"ok": ok, "msg": msg}
 
+    # ---- configurar emuladores (opções do RetroBat por sistema/jogo + modo direto no emulador) ----
+    def _emu_scope(self, system, game_id):
+        """-> (sistema, rom do jogo ou None, jogo ou {}, emulador, núcleo) do escopo pedido."""
+        g = (self._svc.catalog.get(game_id) or {}) if game_id else {}
+        if g.get("launch_type") == "disc":  # disco físico: sempre direto no PCSX2/DuckStation
+            from core.discs import DISC_EMU
+            return g.get("disc_system", ""), None, g, DISC_EMU.get(g.get("disc_system", ""), ""), ""
+        if g:
+            system = g.get("rb_system", system)
+        rom = g.get("rom_path") if g else None
+        ovr = {"emulator": g.get("rb_emulator", ""), "core": g.get("rb_core", "")} if g else None
+        emu, core = self._rb.pick_emulator(system, rom, ovr)
+        return system, rom, g, emu, core
+
+    def emu_config(self, system="", game_id=""):
+        from core.emuconfig import emu_label
+        if not self._rb.root():
+            return {"ok": False, "msg": "RetroBat não encontrado."}
+        ec = self._emucfg
+        system, rom, g, emu, core = self._emu_scope(system, game_id)
+        s = self._rb.system(system) or {}
+        disc = g.get("launch_type") == "disc"
+        exe = ec.exe(emu)
+        out = {"ok": True, "system": system, "fullname": s.get("fullname") or g.get("platform") or system,
+               "game": game_id or "", "game_name": g.get("name", game_id) if g else "", "disc": disc,
+               "emulator": emu, "core": core, "emu_label": emu_label(emu, core), "installed": bool(exe),
+               "direct_ok": ec.direct_supported(emu), "sys_direct": ec.system_direct(system),
+               "mode": g.get("rb_mode", "") if g else ("direct" if ec.system_direct(system) else "retrobat")}
+        if disc:
+            out.update(sections=[], emu_choices=[], emu_value="")
+            return out
+        if g:
+            r = self.retrobat_game_emus(game_id)
+            out.update(emu_choices=r["choices"], emu_value=r["value"])
+        else:
+            cfg = self._rb.es_get_all()
+            se, sc = cfg.get(f"{system}.emulator", ""), cfg.get(f"{system}.core", "")
+            choices = [["", "Automático (padrão do RetroBat)"]]
+            for e in s.get("emulators", []):
+                choices += [[f'{e["name"]}/{c}', f'{e["name"]} · {c}'] for c in e["cores"]] if e["cores"] else [[e["name"], e["name"]]]
+            out.update(emu_choices=choices, emu_value=f"{se}/{sc}" if se and sc else se)
+        feats = ec.features(system, emu, core)
+        sysv, gamev = ec.values(system, rom)
+        sections = {}
+        for o in feats:
+            o = dict(o)
+            o["value"] = (gamev if g else sysv).get(o["key"], "")
+            o["inherited"] = sysv.get(o["key"], "") if g else ""
+            sections.setdefault(o["section"], []).append(o)
+        out["sections"] = [{"name": k, "items": v} for k, v in sections.items()]
+        out["changed"] = sum(1 for v in sections.values() for o in v if o["value"] not in ("", None))
+        return out
+
+    def emu_config_set(self, system, game_id, key, value):
+        ec = self._emucfg
+        system, rom, g, emu, core = self._emu_scope(system, game_id)
+        if key == "@emu":
+            if g:
+                return self.retrobat_game_set(game_id, value)
+            return {"ok": bool(self._rb.set_option(f"{system}@emu", value))}
+        if key == "@mode":
+            if g:
+                if value in ("direct", "retrobat"):
+                    self._svc.update_game(game_id, {"rb_mode": value})
+                else:
+                    self._svc.update_game(game_id, {}, remove=("rb_mode",))
+            else:
+                ec.set_system_direct(system, value == "direct")
+            return {"ok": True}
+        return {"ok": bool(ec.set_value(system, rom, key, value))}
+
+    def emu_config_reset(self, system, game_id=""):
+        system, rom, g, emu, core = self._emu_scope(system, game_id)
+        keys = {o["key"] for o in self._emucfg.features(system, emu, core)}
+        return {"ok": bool(self._emucfg.reset(system, rom, keys))}
+
+    def emu_open_gui(self, system, game_id=""):
+        system, rom, g, emu, core = self._emu_scope(system, game_id)
+        if emu == "libretro":
+            return {"ok": False, "msg": "Este sistema usa o RetroArch, que é configurado pelas opções abaixo."}
+        ok, msg = self._emucfg.open_gui(emu)
+        return {"ok": ok, "msg": msg, "name": self._emucfg_label(emu)}
+
+    @staticmethod
+    def _emucfg_label(emu):
+        from core.emuconfig import emu_label
+        return emu_label(emu)
+
     def retrobat_test(self):
         """Diagnóstico: controles vistos pelo SDL do RetroBat e o comando que seria usado."""
         pads = self._rb.controllers()
@@ -279,7 +373,46 @@ class Api:
     def _retro(self, game_id):
         """Jogo do RetroBat num sistema que existe no RetroAchievements (senão None)."""
         g = self._svc.catalog.get(game_id) or {}
+        if g.get("launch_type") == "disc":
+            return g if g.get("disc_system") in RA_CONSOLES else None
         return g if g.get("launch_type") == "retrobat" and g.get("rb_system") in RA_CONSOLES else None
+
+    # ---- disco novo no leitor: janela de pré-configuração ----
+    def disc_setup(self, game_id):
+        from core.discs import SYSTEMS, disc_set
+        g = self._svc.catalog.get(game_id) or {}
+        if g.get("launch_type") != "disc":
+            return {"ok": False, "msg": "Este jogo não é de disco."}
+        discs = getattr(self, "_discs", None)
+        hit = discs.find_disc(g) if discs else None
+        info = discs.current.get(hit[0], {}) if hit else {}
+        sib = sorted(((k, x.get("name", k)) for k, x in self._svc.catalog.items()
+                      if k != game_id and x.get("launch_type") == "disc" and x.get("disc_system") == g.get("disc_system")),
+                     key=lambda kv: kv[1].casefold())
+        return {"ok": True, "id": game_id, "name": g.get("name", game_id), "system": SYSTEMS.get(g.get("disc_system", ""), ""),
+                "serial": info.get("serial") or g.get("disc_serial", ""), "drive": hit[0].rstrip("\\") if hit else "",
+                "disc_n": hit[1] if hit else 0, "playable": bool(info.get("playable")), "why": info.get("why", ""),
+                "discs": [{"n": d.get("n") or i + 1, "serial": d.get("serial", ""), "label": d.get("label", ""),
+                           "in": bool(hit) and (d.get("n") or i + 1) == hit[1]} for i, d in enumerate(disc_set(g))],
+                "siblings": [{"id": k, "name": n} for k, n in sib], "ra": game_id in self._svc.catalog and bool(self._retro(game_id)),
+                "ra_on": self._ra.configured(), "scraper": self._scraper.available(),
+                "popup": bool(self._app.get("disc_popup", True))}
+
+    def disc_setup_ach(self, game_id):
+        """Conquistas do disco (RetroAchievements): total, já feitas e o nome oficial do jogo no RA."""
+        g = self._retro(game_id)
+        if not g:
+            return {"ok": False, "reason": "Este sistema não tem conquistas no RetroAchievements."}
+        r = self._ra.game(g)
+        return {k: r.get(k) for k in ("ok", "reason", "title", "total", "unlocked", "points", "points_user", "icon")}
+
+    def disc_join(self, src, dst):
+        ok, msg = self._svc.disc_join(src, dst)
+        return {"ok": ok, "msg": msg, "id": dst if ok else src}
+
+    def disc_popup_set(self, value):
+        self._app.set("disc_popup", bool(value))
+        return {"ok": True}
 
     def achievements_summary(self, game_id):
         g = self._retro(game_id)
@@ -671,6 +804,8 @@ def main():
     api = Api(service, scraper, libs, app, AppsService(libs), system, backdrop)
     api._anyfse = AnyFSEService(system)
     api._rb = retrobat
+    from core.emuconfig import EmuConfig
+    retrobat.emucfg = api._emucfg = EmuConfig(retrobat, app)
     api._net = NetworkService(app, retrobat)
     api._upd = updater
     updater.notify = lambda st: api._emit("updateStatus", st)
@@ -743,9 +878,15 @@ def main():
         if info["system"] not in PLAYABLE:
             js(window, f"toast({json.dumps('💿 ' + (info['why'] or 'Disco não reconhecido.'))},1)")
             return
-        gid, name, is_new = service.import_disc(info)
-        games_changed(f"💿 {name} no leitor {letter}" + ("" if info["playable"] else f" · {info['why']}"))
-        js(window, f"discIn({json.dumps({'id': gid, 'name': name, 'playable': info['playable'], 'why': info['why'], 'need': info.get('need', '')})})")
+        if info["system"] in RA_CONSOLES:  # identidade no RetroAchievements (conquistas e jogos de vários discos)
+            info["ra_hashes"], info["ra_id"] = ra.disc_id(info["system"], drive)
+        gid, name, status, disc_n = service.import_disc(info)
+        is_new = status == "new"
+        many = len((service.catalog.get(gid) or {}).get("disc_set") or []) > 1
+        what = f"💿 {name}" + (f" · disco {disc_n}" if many or status == "joined" else "")
+        games_changed(f"{what} no leitor {letter}" + ("" if info["playable"] else f" · {info['why']}"))
+        running = discs.running()  # trocou de disco no meio do jogo: não mexe na tela nem abre janela
+        js(window, f"discIn({json.dumps({'id': gid, 'name': name, 'playable': info['playable'], 'why': info['why'], 'need': info.get('need', ''), 'status': status, 'disc_n': disc_n, 'running': running, 'popup': is_new and not running and bool(app.get('disc_popup', True))})})")
         if is_new and scraper.cfg.get("auto_on_insert") and scraper.available():
             threading.Thread(target=auto_scrape, args=(gid,), daemon=True).start()
 

@@ -166,33 +166,56 @@ def playstation_hashes(console, path):
             if sfo and ebt:
                 out.append(hashlib.md5(iso.read(*sfo) + iso.read(*ebt)).hexdigest())
             return out, "" if out else "não achei o PSP_GAME no disco"
-        cnf = iso.find("SYSTEM.CNF")
-        key = "BOOT2" if console == 21 else "BOOT"
-        exe = None
-        if cnf:
-            for line in iso.read(*cnf).decode("latin-1", "replace").splitlines():
-                k, _, v = line.partition("=")
-                if k.strip().upper() == key:
-                    v = v.strip()
-                    v = v.split(":", 1)[1] if ":" in v else v  # tira "cdrom0:" / "cdrom:"
-                    exe = v.lstrip("\\/").split(";")[0].strip()
-                    break
-        if not exe and console == 12 and iso.find("PSX.EXE"):
-            exe = "PSX.EXE"
-        loc = iso.find(exe) if exe else None
-        if not loc:
-            return [], "não achei o executável do jogo no disco"
-        data = iso.read(*loc)
-        names = [exe, exe + ";1"]
-        out = []
-        if console == 12 and data[:8] == b"PS-X EXE":  # PS1: tamanho do executável vem do cabeçalho
-            body = data[:int.from_bytes(data[28:32], "little") + 2048]
-            out += [hashlib.md5(n.encode("latin-1") + body).hexdigest() for n in names]
-        out += [hashlib.md5(n.encode("latin-1") + data).hexdigest() for n in names]
-        out.append(hashlib.md5(data).hexdigest())
-        return list(dict.fromkeys(out)), ""
+        return _ps_hashes(console, lambda name: (lambda loc: iso.read(*loc) if loc else None)(iso.find(name)))
     finally:
         iso.close()
+
+
+def _ps_hashes(console, read):
+    """PS1/PS2: read(nome) -> bytes do arquivo no disco (ou None). Igual para imagem .iso/.bin e para o disco no leitor."""
+    cnf = read("SYSTEM.CNF")
+    key = "BOOT2" if console == 21 else "BOOT"
+    exe = None
+    if cnf:
+        for line in cnf.decode("latin-1", "replace").splitlines():
+            k, _, v = line.partition("=")
+            if k.strip().upper() == key:
+                v = v.strip()
+                v = v.split(":", 1)[1] if ":" in v else v  # tira "cdrom0:" / "cdrom:"
+                exe = v.lstrip("\\/").split(";")[0].strip()
+                break
+    if not exe and console == 12 and read("PSX.EXE") is not None:
+        exe = "PSX.EXE"
+    data = read(exe) if exe else None
+    if data is None:
+        return [], "não achei o executável do jogo no disco"
+    names = [exe, exe + ";1"]
+    out = []
+    if console == 12 and data[:8] == b"PS-X EXE":  # PS1: tamanho do executável vem do cabeçalho
+        body = data[:int.from_bytes(data[28:32], "little") + 2048]
+        out += [hashlib.md5(n.encode("latin-1") + body).hexdigest() for n in names]
+    out += [hashlib.md5(n.encode("latin-1") + data).hexdigest() for n in names]
+    out.append(hashlib.md5(data).hexdigest())
+    return list(dict.fromkeys(out)), ""
+
+
+def drive_hashes(console, drive, limit=64 * 1024 * 1024):
+    """Hash do disco FÍSICO no leitor (D:\\): o Windows já mostra os arquivos do disco, então lê o SYSTEM.CNF e o
+    executável direto, sem copiar o disco. -> ([hashes], motivo)."""
+    if console not in (12, 21):
+        return [], "sistema sem leitura de disco"
+
+    def read(name):
+        p = Path(drive, *[x for x in name.replace("/", "\\").split("\\") if x])
+        try:
+            with open(p, "rb") as f:
+                return f.read(limit)
+        except OSError:
+            return None
+    try:
+        return _ps_hashes(console, read)
+    except OSError as e:
+        return [], str(e)
 
 
 DISC = {12, 21, 41}
@@ -200,6 +223,12 @@ DISC = {12, 21, 41}
 
 def rom_hashes(console, path):
     """-> ([hashes candidatos], motivo). Cartuchos têm um só; discos podem ter variações."""
+    if str(path).lower().endswith(".m3u"):  # jogo de vários discos: o disco 1 identifica o jogo
+        from .multidisc import read_m3u
+        first = next(iter(read_m3u(path)), "")
+        if not first:
+            return [], "lista .m3u vazia"
+        path = first
     if console in DISC:
         try:
             return playstation_hashes(console, path)
@@ -384,8 +413,37 @@ class RetroAchievementsService:
             pass
         return m
 
+    def lookup(self, console, hashes):
+        """-> id do jogo no RA para algum dos hashes (lista oficial), ou None."""
+        if not hashes:
+            return None
+        lib = self.hashlib(console)
+        return next((lib[h] for h in hashes if h in lib), None)
+
+    def disc_id(self, system, drive):
+        """Disco físico no leitor -> (hashes, id no RA | None)."""
+        console = CONSOLES.get(system)
+        if not console:
+            return [], None
+        hs, _ = drive_hashes(console, drive)
+        try:
+            return hs, self.lookup(console, hs)
+        except Exception as e:
+            log.info("RA disco: %s", e)
+            return hs, None
+
     def game_id(self, game):
         """-> (id do jogo no RA | None, motivo para mostrar)."""
+        if game.get("launch_type") == "disc":  # disco físico: hashes guardados quando o disco entrou no leitor
+            console = CONSOLES.get(game.get("disc_system", ""))
+            if not console:
+                return None, "Este sistema não tem conquistas no RetroAchievements."
+            hs = [h for d in game.get("disc_set") or [] for h in d.get("ra_hashes") or []]
+            if not hs:
+                return None, "Coloque o disco no leitor para o NeoSD identificar o jogo."
+            gid = self.lookup(console, hs)
+            return (gid, "") if gid else (None, "Este disco não está na lista do RetroAchievements (versão ou região "
+                                                "ainda sem conquistas).")
         system, rom = game.get("rb_system", ""), game.get("rom_path", "")
         console = CONSOLES.get(system)
         if not console:

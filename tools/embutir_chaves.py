@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from core.scraper.builtin import mask  # noqa: E402
+from core.scraper.devkeys import mask  # noqa: E402
 
 OUT = ROOT / "core" / "scraper" / "_builtin_keys.py"
 
@@ -25,6 +25,9 @@ def main():
         if f.is_file():
             ss = (json.loads(f.read_text(encoding="utf-8-sig")) or {}).get("screenscraper") or {}
             devid, devpw, src = str(ss.get("devid", "")).strip(), str(ss.get("devpassword", "")).strip(), f.name
+    if "COLE_AQUI" in devid + devpw:  # o modelo foi só renomeado, sem trocar os textos
+        print("ScreenScraper: chaves.local.json ainda tem os textos do modelo (COLE_AQUI...). Troque pelos seus dados.")
+        devid = devpw = ""
     if devid and devpw:
         OUT.write_text("# Gerado pelo build (tools/embutir_chaves.py). Não versionar.\n"
                        f"SS = ({mask(devid)!r}, {mask(devpw)!r})\n", encoding="utf-8")

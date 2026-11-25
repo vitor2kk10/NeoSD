@@ -6,7 +6,9 @@ import json
 import ntpath
 import os
 import re
+import logging
 import threading
+from pathlib import Path
 
 try:
     import winreg
@@ -15,6 +17,7 @@ except ImportError:  # fora do Windows (testes): sem registro
 
 from .games import METADATA_KEYS, clean_rom_name, safe_name
 
+log = logging.getLogger("neosd.libraries")
 STORE_NAMES = {"steam": "Steam", "gog": "GOG", "epic": "Epic Games", "folder": "Pasta", "retrobat": "RetroBat"}
 ALLOWED_URI = ("steam://", "com.epicgames.launcher://")
 STEAM_SKIP_IDS = {"228980"}  # Steamworks Common Redistributables
@@ -337,6 +340,34 @@ class LibraryService:
                     return True
         return False
 
+    def _absorb_discs(self, it):
+        """Jogo de vários discos virou um .m3u: os cadastros antigos de cada disco viram um só (o do disco 1 fica,
+        com capa, tempo jogado e conquistas, apontando para o .m3u; os outros saem). Não duplica o jogo."""
+        from .multidisc import read_m3u, split_disc
+        discs = {_norm(p) for p in read_m3u(it["rom_path"])}
+        if not discs:
+            return
+        gs = self.games
+        with gs.lock:
+            olds = [(k, g) for k, g in gs.catalog.items()
+                    if g.get("launch_type") == "retrobat" and _norm(g.get("rom_path")) in discs]
+            if not olds or any(_norm(g.get("rom_path")) == _norm(it["rom_path"]) for g in gs.catalog.values()):
+                return
+            olds.sort(key=lambda kv: split_disc(Path(kv[1].get("rom_path", "")).stem)[1] or 99)
+            keep_k, keep = olds[0]
+            keep.update(rom_path=it["rom_path"], store_id=it.get("store_id", keep.get("store_id", "")))
+            for k, g in olds[1:]:
+                for f in ("cover", "hero", "icon", "description", "genre", "developer", "release_date", "rating"):
+                    if not keep.get(f) and g.get(f):
+                        keep[f] = g[f]
+                gs.catalog.pop(k, None)
+            base = split_disc(keep.get("name") or keep_k)[0]
+            if base:  # "FF7 (Disc 1)" -> "FF7" (só o nome mostrado; a chave do cadastro continua a mesma)
+                keep["name"] = base
+            from .store import save_json
+            save_json("catalog.json", gs.catalog)
+        log.info("discos juntados em %s", it["rom_path"])
+
     # -- importar
     def import_items(self, items):
         """Cria um jogo por item (ignora o que não passar na validação). Retorna (adicionados, ignorados)."""
@@ -347,6 +378,8 @@ class LibraryService:
         added = skipped = 0
         gs = self.games
         for it in items:
+            if it.get("launch_type") == "retrobat" and str(it.get("rom_path", "")).lower().endswith(".m3u"):
+                self._absorb_discs(it)
             if self._known(it):  # já está na biblioteca (mesma loja/ID, mesma ROM, mesmo .exe): não duplica
                 skipped += 1
                 continue

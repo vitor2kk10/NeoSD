@@ -153,7 +153,7 @@ class GameService:
                     return False, msg
             elif "rb" in paths:
                 ovr = {"emulator": game.get("rb_emulator", ""), "core": game.get("rb_core", "")}
-                ok, msg = paths["rb"].launch(game.get("rb_system", ""), paths["rom"], ovr)
+                ok, msg = paths["rb"].launch(game.get("rb_system", ""), paths["rom"], ovr, mode=game.get("rb_mode", ""))
                 if not ok:
                     return False, msg
             elif "emu" in paths:
@@ -198,26 +198,77 @@ class GameService:
         return name, is_new
 
     def import_disc(self, info):
-        """Registra (ou reencontra) o jogo de um disco físico. Retorna (id, nome, é_novo)."""
-        from .discs import SYSTEMS
+        """Registra (ou reencontra) o jogo de um disco físico. -> (id, nome, situação, nº do disco).
+        situação: "known" (disco já cadastrado), "joined" (outro disco de um jogo já cadastrado), "new"."""
+        from .discs import SYSTEMS, disc_match, disc_set
+        from .multidisc import norm
+        disc = {"serial": info["serial"], "vserial": info["vserial"], "label": info["label"],
+                "n": info.get("disc_n") or 0, "ra_hashes": info.get("ra_hashes") or [], "ra_id": info.get("ra_id")}
         with self.lock:
-            for key, g in self.catalog.items():
-                if g.get("launch_type") == "disc" and (
-                        (info["serial"] and g.get("disc_serial") == info["serial"]) or
-                        (not info["serial"] and g.get("disc_vserial") == info["vserial"])):
-                    g.update(disc_label=info["label"], disc_vserial=info["vserial"])
-                    save_json("catalog.json", self.catalog)
-                    return key, g.get("name", key), False
-            name = info["name"]
+            discs = [(k, g) for k, g in self.catalog.items() if g.get("launch_type") == "disc"]
+            for key, g in discs:  # este disco já está na biblioteca
+                ds = disc_set(g)
+                for i, d in enumerate(ds):
+                    if disc_match(d, info):
+                        d.update({k: v for k, v in disc.items() if v or k == "label"})
+                        d["n"] = d.get("n") or disc["n"]
+                        g["disc_set"] = ds
+                        g.update(disc_label=info["label"], disc_vserial=g.get("disc_vserial") or info["vserial"])
+                        save_json("catalog.json", self.catalog)
+                        return key, g.get("name", key), "known", d.get("n") or i + 1
+            if disc["n"]:  # disco 2 de um jogo que já está na biblioteca (mesmo nome sem o número, ou mesmo jogo no RA)
+                for key, g in discs:
+                    if g.get("disc_system") != info["system"]:
+                        continue
+                    ds = disc_set(g)
+                    same_ra = disc["ra_id"] and any(d.get("ra_id") == disc["ra_id"] for d in ds)
+                    same_name = norm(g.get("disc_base") or g.get("name", "")) == norm(info.get("base") or info["name"])
+                    if same_ra or same_name:
+                        self._add_disc(g, ds, disc)
+                        save_json("catalog.json", self.catalog)
+                        return key, g.get("name", key), "joined", disc["n"]
+            name = info.get("base") if disc["n"] and info.get("base") else info["name"]
             if name in self.catalog:  # o mesmo nome já existe (ex.: a ISO do mesmo jogo no RetroBat)
                 name = f"{name} (disco)"
             entry = {"name": name, "launch_type": "disc", "source": "disc", "description": "", "cover": None, "icon": None,
                      "disc_system": info["system"], "disc_serial": info["serial"], "disc_vserial": info["vserial"],
-                     "disc_label": info["label"], "platform": SYSTEMS.get(info["system"], "")}
+                     "disc_label": info["label"], "disc_base": info.get("base") or info["name"], "disc_set": [disc],
+                     "platform": SYSTEMS.get(info["system"], "")}
             entry.update({k: "" for k in METADATA_KEYS if k not in entry})
             self.catalog[name] = entry
             save_json("catalog.json", self.catalog)
-        return name, name, True
+        return name, name, "new", disc["n"] or 1
+
+    @staticmethod
+    def _add_disc(g, ds, disc):
+        if not disc["n"]:
+            disc["n"] = max([d.get("n") or i + 1 for i, d in enumerate(ds)] + [0]) + 1
+        for i, d in enumerate(ds):
+            d["n"] = d.get("n") or i + 1
+        ds.append(disc)
+        ds.sort(key=lambda d: d.get("n") or 99)
+        g["disc_set"] = ds
+
+    def disc_join(self, src, dst):
+        """Junta o disco cadastrado como 'src' no jogo 'dst' (jogo de vários discos). -> (ok, msg)."""
+        from .discs import disc_set
+        with self.lock:
+            a, b = self.catalog.get(src), self.catalog.get(dst)
+            if not a or not b or src == dst or a.get("launch_type") != "disc" or b.get("launch_type") != "disc":
+                return False, "Escolha um jogo em disco."
+            if a.get("disc_system") != b.get("disc_system"):
+                return False, "Os discos são de sistemas diferentes."
+            ds = disc_set(b)
+            for d in disc_set(a):
+                d = dict(d)
+                if not any(x.get("serial") == d.get("serial") and x.get("vserial") == d.get("vserial") for x in ds):
+                    self._add_disc(b, ds, d)
+            for f in ("cover", "hero", "icon", "description", "genre", "developer", "release_date", "rating"):
+                if not b.get(f) and a.get(f):
+                    b[f] = a[f]
+            self.catalog.pop(src, None)
+            save_json("catalog.json", self.catalog)
+        return True, f"Agora {b.get('name', dst)} tem {len(b['disc_set'])} discos."
 
     # ---------- adicionar / editar / remover jogo ----------
     def get_form(self, game_id=None):
@@ -637,7 +688,8 @@ class GameService:
         emu = self.emulators.get(g.get("emulator_id", ""), {}) if g.get("launch_type") == "emulator" else {}
         src = self.source(g)
         cart = self._match_cart(g, mounted) if src == "sd" else None
-        disc = getattr(self, "discs", None).find(g) if g.get("launch_type") == "disc" and getattr(self, "discs", None) else None
+        dhit = getattr(self, "discs", None).find_disc(g) if g.get("launch_type") == "disc" and getattr(self, "discs", None) else None
+        disc = dhit[0] if dhit else None
         dash = lambda k: g.get(k) or "—"
         return {
             "id": key, "n": g.get("name", key), "d": g.get("description", ""),
@@ -649,6 +701,8 @@ class GameService:
             "h": [h1, (h1 + 40) % 360], "img": cover, "ic": icon,
             "store": g.get("store", ""), "lt": g.get("launch_type") or "direct",
             "sys": sys_k, "sysn": sys_n,
+            "discs": len(g.get("disc_set") or []) if g.get("launch_type") == "disc" else 0,
+            "disc_n": dhit[1] if dhit else 0,
             "rating": g["rating"] if isinstance(g.get("rating"), (int, float)) else None,
             "has_hero": bool((p := resolve(g.get("hero"))) and p.is_file()),
         }

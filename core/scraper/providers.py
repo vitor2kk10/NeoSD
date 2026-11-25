@@ -1,10 +1,13 @@
 """Fontes de dados. Cada uma devolve candidatos no mesmo formato (ver base.new_candidate).
 Steam / IGDB / ScreenScraper = metadados + arte; SteamGridDB = só arte (a melhor, da comunidade)."""
+import logging
 import time
 from datetime import datetime, timezone
 
 from .base import ScraperError, clean_text, fmt_date, new_candidate, parse_year, score_candidate
 from .platforms import igdb_id, key_from_igdb, key_from_ss, ss_id
+
+log = logging.getLogger("neosd.scraper")
 
 
 class Provider:
@@ -237,8 +240,12 @@ class ScreenScraper(Provider):
         self._minute = deque()
         self.quota = {}
         self._blocked = (0.0, "")
-        from .builtin import screenscraper
-        self.builtin = screenscraper()
+        try:  # nunca deixa o NeoSD sem abrir por causa disto (ex.: antivírus bloqueou o arquivo)
+            from .devkeys import screenscraper
+            self.builtin = screenscraper()
+        except Exception:
+            log.exception("credenciais embutidas indisponíveis")
+            self.builtin = None
         if self.builtin:  # credenciais do NeoSD já vêm no .exe: o usuário só entra com a própria conta (opcional)
             self.fields = self.fields[2:]
             self.needs_account = False

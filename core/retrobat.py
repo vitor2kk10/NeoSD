@@ -248,7 +248,26 @@ class RetroBatService:
                             pass
 
         walk(root, 0)
-        return [p for p in found if os.path.normcase(str(Path(p).resolve())) not in hidden]
+        found = [p for p in found if os.path.normcase(str(Path(p).resolve())) not in hidden]
+        if ".m3u" in exts and self.settings.get("rb_auto_m3u", True):
+            found = self._multidisc(found)
+        return found
+
+    @staticmethod
+    def _multidisc(found):
+        """'Jogo (Disc 1).cue' + '(Disc 2).cue' sem .m3u: cria 'Jogo.m3u' na pasta e mostra só ele (um jogo só,
+        com troca de disco pelo emulador). Se a pasta não deixar gravar, os discos continuam separados."""
+        from .multidisc import groups, write_m3u
+        files = [p for p in found if os.path.isfile(p)]
+        out, drop = list(found), set()
+        for folder, base, items in groups(files):
+            m3u = write_m3u(folder, base, items)
+            if not m3u:
+                continue
+            drop.update(os.path.normcase(p) for _, p in items)
+            if os.path.normcase(m3u) not in {os.path.normcase(p) for p in out}:
+                out.append(m3u)
+        return sorted((p for p in out if os.path.normcase(p) not in drop), key=lambda p: os.path.basename(p).casefold())
 
     def games(self, system_name):
         s = self.system(system_name)
@@ -258,6 +277,12 @@ class RetroBatService:
         out = []
         for p in self._scan_folder(s):
             info = meta.get(os.path.normcase(str(Path(p).resolve())), {})
+            if not info and p.lower().endswith(".m3u"):  # lista de discos: usa os dados do disco 1 da gamelist
+                from .multidisc import read_m3u, split_disc
+                first = next(iter(read_m3u(p)), "")
+                info = dict(meta.get(os.path.normcase(str(Path(first).resolve())), {})) if first else {}
+                if info.get("name"):
+                    info["name"] = split_disc(info["name"])[0]
             stem = Path(p).stem if Path(p).is_file() or Path(p).suffix else Path(p).name
             out.append({"system": s["name"], "system_name": s["fullname"], "rom": p,
                         "name": info.get("name") or stem, "info": info})
@@ -439,17 +464,29 @@ class RetroBatService:
             cmd += ["-core", core]
         return cmd + ["-rom", str(rom)]
 
-    def launch(self, system_name, rom, override=None, popen=subprocess.Popen):
+    def launch(self, system_name, rom, override=None, popen=subprocess.Popen, mode=""):
+        """mode: "" = igual ao sistema, "direct" = direto no emulador (configurações dele), "retrobat"."""
         if not self.root():
             return False, "RetroBat não encontrado. Indique a pasta em Configurações → Bibliotecas."
         if not os.path.exists(rom):
             return False, "ROM não encontrada."
         if not self.system(system_name):
             return False, f"O RetroBat não tem o sistema “{system_name}”."
-        cmd = self.command(system_name, rom, override)
-        log.info("RetroBat (%d controle(s)): %s", sum(1 for a in cmd if a.endswith("index")), subprocess.list2cmdline(cmd))
+        cmd, cwd = None, str(self.es_dir())
+        ec = getattr(self, "emucfg", None)
+        if ec and ec.wants_direct(system_name, mode):
+            emu, _ = self.pick_emulator(system_name, rom, override)
+            cmd = ec.direct_command(emu, rom)
+            if cmd:  # sem o emulatorLauncher: o emulador usa as configurações que o usuário fez nele
+                cwd = str(Path(cmd[0]).parent)
+                log.info("direto no emulador: %s", subprocess.list2cmdline(cmd))
+            else:
+                log.info("modo direto pedido, mas %s não abre direto (ou não está instalado): indo pelo RetroBat", emu)
+        if not cmd:
+            cmd = self.command(system_name, rom, override)
+            log.info("RetroBat (%d controle(s)): %s", sum(1 for a in cmd if a.endswith("index")), subprocess.list2cmdline(cmd))
         try:
-            proc = popen(cmd, cwd=str(self.es_dir()))
+            proc = popen(cmd, cwd=cwd)
         except OSError as e:
             return False, f"Não consegui abrir o emulatorLauncher: {e}"
         try:
