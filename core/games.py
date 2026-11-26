@@ -11,7 +11,7 @@ from pathlib import Path
 from PIL import Image
 
 from . import sd
-from .media import hash_hue, load_art
+from .media import art_ratio, hash_hue, load_art
 from .store import LIBRARY, load_json, resolve, save_json
 
 METADATA_KEYS = ("platform", "genre", "developer", "release_date", "size", "playtime")
@@ -683,6 +683,7 @@ class GameService:
                 names = self._sys_names(list(self.catalog.items()))
         sys_k, sys_n = self._sys(g, names)
         cover, hue = load_art(resolve(g.get("cover")), "cover")
+        ratio = art_ratio(resolve(g.get("cover"))) if cover else None
         icon, _ = load_art(resolve(g.get("icon")), "icon")
         h1 = hue if hue is not None else hash_hue(g.get("name", key))
         emu = self.emulators.get(g.get("emulator_id", ""), {}) if g.get("launch_type") == "emulator" else {}
@@ -698,7 +699,7 @@ class GameService:
             "platform": g.get("platform") or emu.get("name") or g.get("rb_system_name") or "PC",
             "genre": g.get("genre", ""), "dev": dash("developer"), "year": dash("release_date"),
             "size": dash("size"), "time": dash("playtime"),
-            "h": [h1, (h1 + 40) % 360], "img": cover, "ic": icon,
+            "h": [h1, (h1 + 40) % 360], "img": cover, "ia": ratio, "ic": icon,
             "store": g.get("store", ""), "lt": g.get("launch_type") or "direct",
             "sys": sys_k, "sysn": sys_n,
             "discs": len(g.get("disc_set") or []) if g.get("launch_type") == "disc" else 0,

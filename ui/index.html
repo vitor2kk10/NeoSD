@@ -52,6 +52,10 @@ aside input:focus{border-color:var(--acc)}
 .det.swap>*{opacity:0;transition:opacity .18s}
 .cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .cv.has small,.cv.has h3{display:none}
+.cv.land img{object-fit:contain}.cvb{position:absolute;inset:-14%;background:center/cover no-repeat;filter:blur(18px) brightness(.5) saturate(1.3)}
+.tile.land{width:calc(224px*var(--ia));transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s,margin .3s}.tile.land.sel{margin:0 calc(224px*var(--ia)*.11 - 10px)}.tile.land .cv{aspect-ratio:var(--ia)}
+.det .cv.land{width:calc(360px*var(--ia));max-width:560px;aspect-ratio:var(--ia)}
+.gwc.land{width:calc(240px*var(--ia))}.gwc.land .cv{aspect-ratio:var(--ia)}
 .ic{overflow:hidden}.ic img{width:100%;height:100%;object-fit:cover}
 .cv{position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;padding:16px;display:flex;flex-direction:column;justify-content:space-between;
 background:linear-gradient(160deg,hsl(var(--h1) 70% 44%),hsl(var(--h2) 65% 13%));box-shadow:0 30px 70px hsl(var(--h1) 80% 35%/.5),0 0 0 1px rgba(255,255,255,.18) inset}
@@ -175,7 +179,7 @@ body.incon #app,body.incon #amb{display:none}
 .gcand{justify-content:flex-start!important}.gcand>span:last-child{flex:1}
 .gstrip{display:flex;gap:16px;overflow-x:auto;padding:12px 14px 16px;margin:0 -14px 6px;scroll-padding:14px;scrollbar-width:none}
 .gopt{position:relative;flex:none;width:126px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.06) center/cover;border:2px solid transparent;padding:0}
-.gopt.wide{width:330px;aspect-ratio:3.1/1}.gopt img{width:100%;height:100%;object-fit:cover;display:block}
+.gopt.wide{width:330px;aspect-ratio:3.1/1}.gopt img{width:100%;height:100%;object-fit:cover;display:block}.gopt:not(.wide) img{object-fit:contain;background:rgba(0,0,0,.35)}
 .gopt.on{border-color:var(--acc)}.gopt.on::after{content:"✓";position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:900}
 .gopt .kp{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--mut);text-align:center;padding:8px}
 .gopt small{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 6px;font-size:11px;background:linear-gradient(0deg,rgba(0,0,0,.8),transparent);color:#ddd;text-align:left}
@@ -201,7 +205,9 @@ body.incon #app,body.incon #amb{display:none}
 .raf input{width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--tx);font:inherit;outline:0}.raf input:focus{border-color:rgba(160,150,255,.6)}
 .achs{margin-top:16px;display:flex;align-items:center;gap:14px;max-width:560px;padding:12px 16px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:background .2s}.achs:hover{background:rgba(0,0,0,.4)}
 .achs .tro{font-size:22px}.achs .ai{flex:1;min-width:0}.achs b{font-size:14px}.achs .ai>span{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}.achs .pb{margin-top:8px}.achs .btn2{pointer-events:none}
-.achhd{margin:4px 0 14px}.achhd b{font-size:15px}.achhd .pb{max-width:420px;height:8px}
+.achhd{margin:4px 0 14px}
+.bwl{max-height:46vh;overflow:auto;scrollbar-width:thin}.bwr{gap:12px}.bwr .bws{width:26px;text-align:center;font-size:16px;color:var(--dim);flex:none}.bwr .bws.ok{color:#6be39b}.bwr .bws.warn{color:#f3c86a}.bwr .bws.bad{color:#ff7a7a}.bwr .spin{flex:none;margin:0 4px}.bwr.cur{border-color:rgba(255,255,255,.3)}
+#cdlgi .bwl{max-height:none}.achhd b{font-size:15px}.achhd .pb{max-width:420px;height:8px}
 .achf{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.achf button{padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--mut);font:inherit;font-size:12.5px;cursor:pointer}.achf button.on{background:var(--tx);color:#111;border-color:var(--tx)}.achf span{opacity:.65;margin-left:3px}
 .achl{display:flex;flex-direction:column;gap:8px}
 .achr{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:14px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.06);text-align:left;width:100%;color:var(--tx);font:inherit}
@@ -226,7 +232,7 @@ body.incon #app,body.incon #amb{display:none}
 #achpop{position:fixed;top:22px;right:22px;z-index:40;display:flex;gap:14px;align-items:center;padding:12px 20px 12px 12px;border-radius:18px;width:380px;max-width:calc(100vw - 32px);transform:translateX(calc(100% + 40px));transition:transform .5s cubic-bezier(.2,.9,.3,1.15)}#achpop.on{transform:none}
 #achpop img,#achpop .noi{width:58px;height:58px;border-radius:12px}#achpop div{min-width:0}#achpop small{display:block;color:#f3c86a;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}#achpop b{display:block;font-size:15px;margin-top:3px}#achpop span{display:block;color:var(--mut);font-size:12.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pad-ic{display:none}.pad .pad-ic{display:inline-flex}
-@media(max-width:860px){aside{width:230px}.det{flex-direction:column;overflow:auto;padding:24px}.det .cv{width:170px}h1{font-size:30px}.meta{grid-template-columns:repeat(2,1fr)}#con{padding:24px}.hero h1{font-size:38px}header .sd span.x{display:none}}
+@media(max-width:860px){aside{width:230px}.det{flex-direction:column;overflow:auto;padding:24px}.det .cv{width:170px}.det .cv.land{width:calc(226px*var(--ia))}h1{font-size:30px}.meta{grid-template-columns:repeat(2,1fr)}#con{padding:24px}.hero h1{font-size:38px}header .sd span.x{display:none}}
 .srch{display:flex;gap:8px}.srch input{flex:1;min-width:0;width:auto}
 .ib{width:42px;flex:none;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.1);font-size:22px;font-weight:300;transition:.2s}.ib:hover{background:rgba(255,255,255,.2)}
 .acts{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -245,7 +251,7 @@ body.incon #app,body.incon #amb{display:none}
 .fr{display:flex;gap:8px}.fr input{flex:1;min-width:0}
 .seg{display:inline-flex;padding:3px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid var(--line)}.seg button{padding:6px 18px;border-radius:999px;color:var(--mut);font-weight:600;font-size:13px}.seg button.on{background:rgba(255,255,255,.18);color:var(--tx)}
 .arts{display:flex;gap:30px;margin-top:18px;flex-wrap:wrap}.pk>span{display:block;font-size:12px;font-weight:700;color:var(--mut);margin-bottom:6px}.r2{display:flex;gap:12px;align-items:center}
-.th{width:84px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.07);border:1px solid var(--line);display:grid;place-items:center;font-size:10px;color:var(--dim)}.th.ico{aspect-ratio:1;width:64px}.th img{width:100%;height:100%;object-fit:cover}
+.th{width:84px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.07);border:1px solid var(--line);display:grid;place-items:center;font-size:10px;color:var(--dim)}.th.ico{aspect-ratio:1;width:64px}.th img{width:100%;height:100%;object-fit:contain;background:rgba(0,0,0,.3)}
 .lnk{display:block;margin-top:6px;font-size:12px;color:var(--dim)}.lnk:hover{color:var(--tx)}
 .mg{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
 .err{color:#ff8a9b;min-height:20px;margin-top:12px;font-weight:600;font-size:13px}.ok2{color:var(--ok);font-weight:600;font-size:13px}
@@ -286,6 +292,22 @@ body.incon #app,body.incon #amb{display:none}
 .fld b{font-size:13px;color:var(--tx)}.nv{color:var(--tx);font-size:13px;margin-top:2px;white-space:pre-wrap}.old{color:var(--dim);font-size:11.5px;margin-top:3px}
 .herobg{position:absolute!important;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1s;pointer-events:none}.herobg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,7,13,.9) 8%,rgba(7,7,13,.55) 55%,rgba(7,7,13,.78))}
 .hr{display:flex;gap:10px;align-items:center}
+/* perfis */
+.av{position:relative;display:inline-grid;place-items:center;border-radius:50%;overflow:hidden;flex:none;background:linear-gradient(135deg,var(--a1,#7b5cff),var(--a2,#2fc6e0));color:#fff;font-weight:800;line-height:1}
+.av img,.av svg{width:100%;height:100%;display:block;object-fit:cover}.av .em{font-size:1.2em;line-height:1}
+.pchip{display:flex;align-items:center;gap:9px;height:40px;padding:0 14px 0 4px;border-radius:999px;background:rgba(0,0,0,.28);border:1px solid var(--line);color:var(--tx);font:inherit;font-size:13px;font-weight:600;cursor:pointer}.pchip:hover{border-color:rgba(255,255,255,.3)}.pchip .lv{color:var(--dim);font-weight:500}
+.cprof{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--tx)}
+.lvr{--p:0;position:relative;width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--acc) calc(var(--p)*1%),rgba(255,255,255,.12) 0);display:grid;place-items:center;flex:none}.lvr::before{content:"";position:absolute;inset:5px;border-radius:50%;background:#0c0c16}.lvr b{position:relative;font-size:20px}.lvr i{position:absolute;bottom:-8px;font-style:normal;font-size:9.5px;letter-spacing:.12em;color:var(--dim);background:#0c0c16;padding:0 4px;border-radius:6px}
+.phd{display:flex;align-items:center;gap:20px;margin-bottom:16px}.phd h2{font-size:28px}.phd p{color:var(--mut);font-size:13px;margin-top:4px}
+.trs{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 16px}.trs span{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.07);font-size:13px;color:var(--mut)}.trs b{color:var(--tx);font-size:15px}.trs svg{width:18px;height:18px}
+.avg{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 14px}.avg button{padding:3px;border-radius:50%;border:2px solid transparent;background:none;cursor:pointer}.avg button.on,.avg button:hover,.avg button.fx{border-color:#fff}
+.plist{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px}.plist button{display:flex;flex-direction:column;align-items:center;gap:8px;width:96px;padding:10px 4px;border-radius:16px;background:none;border:1px solid transparent;color:var(--tx);font:inherit;font-size:12.5px;cursor:pointer}.plist button:hover{background:rgba(255,255,255,.05)}.plist button.on{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
+.cdlg.who{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:0;background:radial-gradient(70% 60% at 50% 30%,rgba(90,80,200,.35),transparent 70%),linear-gradient(180deg,#10122a,#05050c);display:flex;flex-direction:column;justify-content:center;padding:6vh 6vw}
+.who h1{font-size:46px;font-weight:600;text-align:center}.who .ws{color:var(--mut);font-size:20px;text-align:center;margin-top:10px}
+.wrow{display:flex;justify-content:center;align-items:flex-start;gap:4vw;margin-top:9vh;flex-wrap:wrap}.wav{display:flex;flex-direction:column;align-items:center;gap:22px;background:none;border:0;color:var(--tx);font:inherit;font-size:21px;cursor:pointer;transition:transform .25s}
+.wav .av{width:190px;height:190px;font-size:76px;box-shadow:0 18px 50px rgba(0,0,0,.5);transition:box-shadow .25s,transform .25s}.wav.fx .av,.wav:hover .av{box-shadow:0 0 0 5px #fff,0 0 40px rgba(140,120,255,.6);transform:scale(1.06)}
+.wav.add .av{background:rgba(255,255,255,.12)}.cdlg.who .wav.fx{outline:0!important;box-shadow:none!important;background:none!important}
+.ctop .r>*{white-space:nowrap}.wav .wl{font-size:14px;color:var(--dim)}
 .gear{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.28);border:1px solid var(--line);display:grid;place-items:center;color:var(--mut);transition:.25s}.gear svg{transition:transform .5s}
 .gear:hover,.gear.on{color:var(--tx);background:rgba(255,255,255,.14)}.gear.on svg{transform:rotate(60deg)}
 #setnav{width:230px;flex:none;padding:16px;display:flex;flex-direction:column;gap:6px}
@@ -305,7 +327,7 @@ body.incon #app,body.incon #amb{display:none}
   <header class="g">
     <div class="logo"><i></i>NEO&nbsp;SD</div>
     <nav class="tabs"><button id="t-det" class="on">Detalhes</button><button id="t-lib">Biblioteca</button><button id="t-emu">Emuladores</button></nav>
-    <div class="hr"><button class="sd in" id="sd" title="Clique para simular inserir/remover o cartão"><span class="dot"></span><span id="sdt"></span><span class="bar"><i></i></span></button><button class="gear" id="gear" title="Configurações"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
+    <div class="hr"><button class="pchip" id="pchip" title="Perfil"></button><button class="sd in" id="sd" title="Clique para simular inserir/remover o cartão"><span class="dot"></span><span id="sdt"></span><span class="bar"><i></i></span></button><button class="gear" id="gear" title="Configurações"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
   </header>
   <main>
     <section class="view on" id="v-det">
@@ -323,7 +345,7 @@ body.incon #app,body.incon #amb{display:none}
   <div class="ctop">
     <div class="clogo"><i></i>NEO SD</div>
     <nav class="ctabs"><i class="kb">LB</i><button class="ctab" data-t="0">Jogos</button><button class="ctab" data-t="3">Emuladores</button><button class="ctab" data-t="1">Apps</button><button class="ctab" data-t="2">Configurações</button><i class="kb">RB</i></nav>
-    <div class="r"><span class="pad-ic"><svg viewBox="0 0 24 24"><path d="M6 8h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.3 2L15 13H9l-1.7 2A3 3 0 0 1 2 13v-1a4 4 0 0 1 4-4z"/></svg></span><span id="csd"></span><span id="cbat"></span><span class="tm" id="tm"></span></div>
+    <div class="r"><span class="cprof" id="cprof"></span><span class="pad-ic"><svg viewBox="0 0 24 24"><path d="M6 8h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.3 2L15 13H9l-1.7 2A3 3 0 0 1 2 13v-1a4 4 0 0 1 4-4z"/></svg></span><span id="csd"></span><span id="cbat"></span><span class="tm" id="tm"></span></div>
   </div>
   <div id="cmain"></div>
   <div class="hint" id="chint"></div>
@@ -354,7 +376,9 @@ const API=()=>window.pywebview&&window.pywebview.api,act=g=>g.active;
 const calc=()=>G.forEach(g=>g.active=g.s==="disc"?!!g.drive:g.s==="l"||(g.s==="sd"&&S.sd&&g.cur));calc();
 const H={a:265,b:220},near=(c,t)=>c+(((t-c+540)%360+360)%360-180);
 const hue=g=>{H.a=near(H.a,g.h[0]);H.b=near(H.b,g.h[1]);R.style.setProperty("--h1",H.a);R.style.setProperty("--h2",H.b)};
-const cover=(g,x="")=>`<div class="cv${g.img?" has":""}" style="--h1:${g.h[0]};--h2:${g.h[1]}">${g.img?`<img src="${g.img}" alt="">`:""}${x}<small>${g.platform||"PC"}</small><h3>${g.n}</h3></div>`;
+const iaOf=g=>g&&g.img&&g.ia>.82?Math.min(g.ia,1.9):0;  // capa deitada (SNES, N64) ou quadrada (PS1): o cartão acompanha
+const landCls=g=>iaOf(g)?" land":"",landSty=g=>iaOf(g)?`;--ia:${iaOf(g)}`:"";
+const cover=(g,x="")=>`<div class="cv${g.img?" has":""}${landCls(g)}" style="--h1:${g.h[0]};--h2:${g.h[1]}${landSty(g)}">${g.img?(iaOf(g)?`<i class="cvb" style="background-image:url('${g.img}')"></i>`:"")+`<img src="${g.img}" alt="">`:""}${x}<small>${g.platform||"PC"}</small><h3>${g.n}</h3></div>`;
 const tag=g=>g.s==="sd"?`<span class="tag">SD</span>`:g.s==="disc"?`<span class="tag">DISCO</span>`:"";
 // sons do modo console: tocados pelo Python (o navegador bloquearia áudio iniciado pelo controle)
 const SFXST={intro:true};let SFXLOG=[];
@@ -392,7 +416,7 @@ function sd(){const on=S.sd,i=S.info||{};$("#sd").classList.toggle("in",on);$("#
 function render(){sd();if(!G.length){list();lib();$("#det").innerHTML=`<div class="info"><h1>Nenhum jogo ainda</h1><p class="desc">Insira um cartão SD com o jogo, ou coloque um disco de PS1/PS2 no leitor, para ele aparecer aqui.</p><button class="play" id="add3" style="margin-top:22px">+ Adicionar jogo</button></div>`;$("#add3").onclick=()=>openForm();return}list();detail();lib();if(S.con)con()}
 function tab(t){S.tab=t;["det","lib","emu","set"].forEach(k=>{const b=$("#t-"+k);if(b)b.classList.toggle("on",t===k);$("#v-"+k).classList.toggle("on",t===k)});$("#gear").classList.toggle("on",t==="set");render();if(t==="emu")emuLoad();if(t==="set")setLoad()}
 function setCon(v){if(v&&!S.con&&SFXST.intro!==false)introPlay();if(v&&!S.con)FA().sfx_preload();S.con=v;document.body.classList.toggle("incon",v);if(API())API().set_fullscreen(v);$("#con").classList.toggle("on",v);$("#cbtn").style.display=v?"none":"flex";
- if(v){CN.tab=0;CN.esys="";CN.rbst=null;CN.rbem=null;FA().retrobat_status().then(r=>{CN.rbst=r;const was=CN.rbin;CN.rbin=!!r.in_games;if(was!==CN.rbin&&S.con&&CN.tab===0)cnGames()});S.ci=Math.max(0,Math.min(S.sel,G.length-1));CN.dlg=false;CN.osk=null;$("#cdlg").classList.remove("on");cnTab(CN.tab);cnBgLoad()}else{CN.bgTok++;if(G[S.sel])hue(G[S.sel])}}
+ if(v){CN.tab=0;CN.esys="";CN.rbst=null;CN.rbem=null;FA().retrobat_status().then(r=>{CN.rbst=r;const was=CN.rbin;CN.rbin=!!r.in_games;if(was!==CN.rbin&&S.con&&CN.tab===0)cnGames()});S.ci=Math.max(0,Math.min(S.sel,G.length-1));CN.dlg=false;CN.osk=null;$("#cdlg").classList.remove("on");cnTab(CN.tab);cnBgLoad();CN.whoShown=0;profWhoMaybe()}else{CN.bgTok++;if(G[S.sel])hue(G[S.sel])}}
 $("#t-det").onclick=()=>{if(S.sysf){S.sysf="";list()}tab("det")};$("#t-lib").onclick=()=>tab("lib");$("#t-emu").onclick=()=>tab("emu");$("#gear").onclick=()=>S.tab==="set"?tab("det"):openSettings();$("#cbtn").onclick=()=>setCon(true);
 $("#sd").onclick=()=>{if(API())return;S.sd=!S.sd;calc();render();toast(S.sd?"● SD detectado: H:":"● SD removido",!S.sd)};
 $("#q").oninput=e=>{S.q=e.target.value;list()};
@@ -417,6 +441,16 @@ const DEMO={ // só para a pré-visualização no navegador; no app quem respond
  async disc_setup_ach(id){await new Promise(r=>setTimeout(r,500));return{ok:true,title:"Resident Evil 4",total:50,unlocked:3,points:405,points_user:15}},
  async disc_join(src,dst){G=G.filter(g=>g.id!==src);return{ok:true,msg:"Agora o jogo tem 2 discos.",id:dst}},
  async disc_popup_set(v){DAPP.disc_popup=v;return{ok:true}},
+ async profiles_state(){if(!DAPP.prof)DAPP.prof={profiles:[{id:"p1",name:"Vitor",avatar:"neo-roxo",level:7,xp:1110,lvl_xp:150,lvl_need:340,total:34,trophies:{platinum:1,gold:4,silver:9,bronze:20}},{id:"p2",name:"Serjoney",avatar:"emo-dragao",level:2,xp:150,lvl_xp:50,lvl_need:140,total:6,trophies:{platinum:0,gold:0,silver:2,bronze:4}}],active:"p1",ask:true,steam:true,ra:true};return JSON.parse(JSON.stringify(DAPP.prof))},
+ async profile_save(d){const st=DAPP.prof;let p=st.profiles.find(x=>x.id===d.id);if(!p){p={id:"p"+Date.now(),name:d.name,avatar:d.avatar||"neo-roxo",level:1,xp:0,lvl_xp:0,lvl_need:100,total:0,trophies:{platinum:0,gold:0,silver:0,bronze:0}};st.profiles.push(p)}p.name=d.name;if(d.avatar&&d.avatar!=="file")p.avatar=d.avatar;return{ok:true,id:p.id,state:JSON.parse(JSON.stringify(st))}},
+ async profile_photo(){toast("O seletor de fotos funciona no app.",1);return{ok:false,cancel:true}},
+ async profile_delete(id){const st=DAPP.prof;st.profiles=st.profiles.filter(x=>x.id!==id);if(st.active===id)st.active=st.profiles[0].id;return{ok:true,state:JSON.parse(JSON.stringify(st))}},
+ async profile_select(id){DAPP.prof.active=id;return{ok:true,state:JSON.parse(JSON.stringify(DAPP.prof))}},
+ async profile_ask(v){DAPP.prof.ask=v;return{ok:true}},async profile_sync(){return{ok:true}},
+ async ra_rematch(){await new Promise(r=>setTimeout(r,400));return{ok:false,msg:"Esta versão da ROM não é reconhecida pelo RetroAchievements."}},
+ async ra_search(id,q){await new Promise(r=>setTimeout(r,400));return{ok:true,query:q||"super mario world",file:"Super_Mario_World_(U)_[!].sfc",linked:0,items:[{id:228,title:"Super Mario World",ach:96,icon:""},{id:4,title:"Super Mario World [Subset - Bonus]",ach:12,icon:""}]}},
+ async ra_link(){return{ok:true,hash_ok:false,title:"Super Mario World"}},
+ async ra_versions(){return{ok:true,items:[{name:"Super Mario World (USA).sfc",md5:"cdd3c8c37322978ca8669b34bc89c804",labels:["nointro"]}]}},
  async emu_config(sys,gid){const g=gid&&G.find(x=>x.id===gid);const sec=JSON.parse(JSON.stringify(DECF));if(g)sec.forEach(x=>x.items.forEach(o=>{o.inherited=o.value;o.value=""}));return{ok:true,system:"ps2",fullname:"Sony PlayStation 2",game:gid||"",game_name:g?g.n:"",disc:!!(g&&g.lt==="disc"),emulator:"pcsx2",core:"pcsx2",emu_label:"PCSX2",installed:true,direct_ok:true,sys_direct:!!DAPP.ps2direct,mode:g?(DAPP["m_"+gid]||""):(DAPP.ps2direct?"direct":"retrobat"),emu_choices:[["","Automático (padrão do RetroBat)"],["pcsx2/pcsx2","pcsx2 · pcsx2"],["libretro/pcsx2","libretro · pcsx2"]],emu_value:"",sections:sec,changed:g?0:1}},
  async emu_config_set(sys,gid,k,v){if(k==="@mode"){if(gid)DAPP["m_"+gid]=v;else DAPP.ps2direct=v==="direct"}return{ok:true}},async emu_config_reset(){return{ok:true}},async emu_open_gui(){return{ok:true}},
  async detect_sd(){return{ok:true,drive:"H:\\",form:{name:"Jogo do Cartão",description:"Sinopse lida do sinopse.txt do cartão.",exe_path:"H:\\game.exe"}}},
@@ -539,14 +573,16 @@ Object.assign(DEMO,{ // pré-visualização no navegador; no app quem responde �
   return{title:c.title,year:c.year,sources:["Steam","SteamGridDB"],fields:[f("description","Sinopse","Sinopse encontrada online (demonstração) com mais de uma frase para mostrar como o texto longo aparece na revisão.",g.d),f("genre","Gênero","Ação, Aventura",g.genre),f("developer","Desenvolvedora","Capcom",g.dev==="—"?"":g.dev),f("release_date","Lançamento","25/01/2019",g.year==="—"?"":g.year),f("rating","Nota",8.8,g.rating)],
   art:{cover:{options:[{url:"c1",thumb:"",source:"Steam"},{url:"c2",thumb:"",source:"SteamGridDB"},{url:"c3",thumb:"",source:"SteamGridDB"}],current:!!g.img,default_on:!g.img},icon:{options:[{url:"i1",thumb:"",source:"SteamGridDB"},{url:"@cover",thumb:"",source:"recortar da capa"}],current:!!g.ic,default_on:!g.ic},hero:{options:[{url:"h1",thumb:"",source:"Steam"},{url:"h2",thumb:"",source:"SteamGridDB"}],current:false,default_on:true}},meta:{provider:c.provider,title:c.title,ref:"1"}}},
  async scraper_apply(id,sel){const g=G.find(x=>x.id===id),f=sel.fields||{};if(f.description)g.d=f.description;if(f.genre)g.genre=f.genre;if(f.developer)g.dev=f.developer;if(f.release_date)g.year=f.release_date;if(f.rating!=null)g.rating=+f.rating;return{ok:true,applied:Object.keys(f).map(k=>({description:"Sinopse",genre:"Gênero",developer:"Desenvolvedora",release_date:"Lançamento",rating:"Nota"}[k])).concat(Object.keys(sel.art||{}).map(k=>AL[k])),failed:[]}},
- async scraper_batch_start(){let i=0;const tot=4,t=setInterval(()=>{i++;window.scraperProgress({done:i,total:tot,current:"Jogo "+i,finished:i>=tot,applied:i-1,review:i>2?1:0,notfound:0,failed:0,pending:i>=tot?[{id:"re2",name:"Resident Evil 2"}]:[]});if(i>=tot)clearInterval(t)},700);return{ok:true,total:tot}},
+ async scraper_batch_start(force){const q=G.slice(0,6).map((g,i)=>({id:g.id,name:g.n,missing:i%2?["fundo"]:["capa","fundo","sinopse"]})),tot=q.length,res=["applied","review","applied","notfound","nothing","applied"];let i=0;
+  const st={applied:0,review:0,notfound:0,failed:0};const t=setInterval(()=>{const g=q[i];const s=res[i];st[s==="nothing"?"applied":s]++;window.scraperProgress({done:i+1,total:tot,current:q[i+1]?q[i+1].id:"",finished:false,item:{id:g.id,status:s,detail:s==="applied"?"Capa, Fundo, Sinopse":""},...st});i++;if(i>=tot){clearInterval(t);window.scraperProgress({done:tot,total:tot,current:"",finished:true,...st,pending:[]})}},900);
+  setTimeout(()=>window.scraperProgress({done:0,total:tot,current:q[0].id,finished:false,...st}),50);return{ok:true,total:tot,queue:q}},
  async scraper_batch_cancel(){return{ok:true}}});
 async function loadHero(g){const a=API();if(!a||!g.has_hero)return;if(g.hero===undefined)g.hero=await a.get_art(g.id,"hero")||"";const b=$("#hb");if(G[S.sel]===g&&g.hero&&b){b.style.backgroundImage=`url("${g.hero}")`;requestAnimationFrame(()=>b.style.opacity=.5)}}
 const thumbH=(u,c)=>/^(https?:|data:)/.test(u||"")?`<img class="${c}" src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:`<div class="${c} ph"></div>`;
 /* --- aba Scraper --- */
 async function scrLoad(){SC.cfg=await FA().scraper_get_config();SC.pend=SC.cfg.pending||[];if(SC.cfg.running&&!SC.prog)SC.prog={done:0,total:0,finished:false};scrUI()}
 function progH(){const p=SC.prog;if(!p)return"";const pct=p.total?Math.round(p.done/p.total*100):0;
- return`<div class="box prog"><div class="pt"><b>${p.finished?(p.cancelled?"Busca cancelada":p.error?"Busca interrompida":"Busca concluída"):"Buscando dados…"}</b><span>${p.done}/${p.total}${p.current?" · "+esc(p.current):""}</span></div><div class="pb"><i style="width:${pct}%"></i></div><p class="s" style="margin:8px 0 0">${p.applied||0} completado(s) · ${p.review||0} para revisar · ${p.notfound||0} não encontrados · ${p.failed||0} com erro${p.error?`<br><span class="err">${esc(p.error)}</span>`:""}</p>${p.finished?"":`<div class="mf"><span class="sp"></span><button class="btn2" id="scancel">Cancelar</button></div>`}</div>`}
+ return`<div class="box prog"><div class="pt"><b>${p.finished?(p.cancelled?"Busca cancelada":p.error?"Busca interrompida":"Busca concluída"):"Buscando dados…"}</b><span>${p.done}/${p.total}${p.current?" · "+esc(p.current):""}</span></div><div class="pb"><i style="width:${pct}%"></i></div><p class="s" style="margin:8px 0 0">${p.applied||0} completado(s) · ${p.review||0} para revisar · ${p.notfound||0} não encontrados · ${p.failed||0} com erro${p.error?`<br><span class="err">${esc(p.error)}</span>`:""}</p><div class="mf"><button class="btn2" id="sbw">Ver a lista</button><span class="sp"></span>${p.finished?"":`<button class="btn2" id="scancel">Cancelar</button>`}</div></div>`}
 const provH=p=>`<div class="ecard pv"><div class="ei" style="flex:1"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><b>${esc(p.name)}</b><span class="bd ${p.configured?"ok":"warn"}">${p.configured?(p.needs_account?"Configurado":"Pronto, sem conta"):"Sem credenciais"}</span><span class="bd">${p.kind==="art"?"Só artes":"Dados + artes"}</span></div>
  <p class="s" style="margin:8px 0 12px">${esc(p.help)}</p>
  ${p.fields.length?`<div class="mg">${p.fields.map(f=>`<div style="margin-bottom:10px"><label>${esc(f.label)}${f.required?" *":""}</label><input data-pf="${p.id}.${f.key}" type="${f.secret?"password":"text"}" value="${f.secret?"":esc(f.value)}" placeholder="${f.secret&&f.set?"•••••••• (salvo)":""}" autocomplete="off"></div>`).join("")}</div>`:""}
@@ -560,14 +596,40 @@ function scrUI(){const c=SC.cfg;if(!c||SET.sec!=="scr"||S.tab!=="set")return;
  <label style="margin:14px 0 5px">Idioma preferido da sinopse</label><select id="slang" style="max-width:320px"><option value="pt"${c.language==="pt"?" selected":""}>Português (quando disponível)</option><option value="en"${c.language==="en"?" selected":""}>Inglês</option></select></div>`}
 const pvals=id=>{const o={};document.querySelectorAll(`#setc [data-pf^="${id}."]`).forEach(i=>{if(i.value!==""||i.type!=="password")o[i.dataset.pf.split(".")[1]]=i.value});return o};
 $("#setc").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const D=t.dataset,a=FA();
- if(t.id==="sbatch"){const r=await a.scraper_batch_start();if(!r.ok)return toast(r.msg,1);SC.prog={done:0,total:r.total,finished:false,applied:0,review:0,notfound:0,failed:0};scrUI()}
+ if(t.id==="sbatch"){const r=await batchStart();if(r)scrUI()}if(t.id==="sbw")batchWin();
  else if(t.id==="scancel"){await a.scraper_batch_cancel();toast("Cancelando…")}
  else if(D.psave){await a.scraper_save_config({[D.psave]:pvals(D.psave)});await scrLoad();toast("Credenciais salvas")}
  else if(D.ptest){const el=$("#pr-"+D.ptest);el.className="pres";el.textContent="Testando…";await a.scraper_save_config({[D.ptest]:pvals(D.ptest)});const r=await a.scraper_test(D.ptest);el.textContent=r.msg;el.className="pres "+(r.ok?"ok2":"err")}
  else if(D.rev)scrapeOpen(D.rev)});
 $("#setc").addEventListener("change",async e=>{const d=e.target.dataset,a=FA();
  if(e.target.id==="sauto")await a.scraper_save_config({auto_on_insert:e.target.checked});else if(e.target.id==="slang")await a.scraper_save_config({language:e.target.value});else if(d.pen)await a.scraper_save_config({[d.pen]:{enabled:e.target.checked}})});
-window.scraperProgress=p=>{SC.prog=p;if(p.finished){SC.pend=p.pending||[];reload().then(()=>{if(S.tab==="set")scrUI()})}else if(S.tab==="set"&&SET.sec==="scr"&&$("#sprog"))$("#sprog").innerHTML=progH();if($("#gs").classList.contains("on"))gsUI();if(S.con){const e=$("#cprog");if(e)e.textContent=p.finished?"Concluído":"Buscando… "+p.done+"/"+p.total}};
+/* janela do "Completar biblioteca": lista os jogos e o que aconteceu com cada um */
+const BW_ST={applied:["✔","ok","Completado"],nothing:["–","","Nada novo nas fontes"],review:["?","warn","Escolha o resultado certo"],notfound:["✖","bad","Não encontrado"],failed:["✖","bad","Erro"]};
+async function batchStart(force){const r=await FA().scraper_batch_start(!!force);
+ if(!r.ok){SC.q=[];SC.res={};SC.empty={msg:r.msg,force:!!force};SC.prog=null;batchWin();return null}
+ SC.empty=null;SC.q=r.queue||[];SC.res={};SC.cur="";SC.prog={done:0,total:r.total,finished:false,applied:0,review:0,notfound:0,failed:0};batchWin();return r}
+function bwRow(x){const r=SC.res[x.id],cur=SC.cur===x.id&&!r,st=r&&BW_ST[r.status]||null;
+ const right=cur?`<span class="spin"></span>`:st?`<b class="bws ${st[1]}">${st[0]}</b>`:`<b class="bws">·</b>`;
+ const sub=cur?"Procurando…":r?(r.status==="applied"?"Adicionado: "+(r.detail||"dados"):r.status==="failed"?(r.detail||"Erro"):st[2]):"Falta: "+(x.missing||[]).join(", ");
+ const rev=r&&(r.status==="review"||r.status==="notfound");
+ return`<div class="achr bwr${cur?" cur":""}${S.con&&rev?" cf":""}" data-bw="${esc(x.id)}"${S.con&&rev?` data-da="bwrev" data-fk="bw:${esc(x.id)}"`:""}>${right}<span class="at"><b>${esc(x.name)}</b><i>${esc(sub)}</i></span>${rev?`<span class="am">${S.con?"<b>Revisar</b>":`<button class="btn2" data-bwrev="${esc(x.id)}">Revisar</button>`}</span>`:""}</div>`}
+function bwHead(){const p=SC.prog;if(SC.empty)return`<p class="s">${esc(SC.empty.msg)}</p>`;if(!p)return"";const pct=p.total?Math.round(p.done/p.total*100):0;
+ return`<div class="achhd"><b>${p.finished?(p.cancelled?"Cancelado":p.error?"Interrompido":"Pronto!"):"Procurando "+(p.done+1>p.total?p.total:p.done+1)+" de "+p.total+"…"}</b><div class="pb"><i style="width:${pct}%"></i></div></div>
+ <p class="s" style="margin:0 0 10px">${p.applied||0} completado(s) · ${p.review||0} para revisar · ${p.notfound||0} não encontrado(s) · ${p.failed||0} com erro${p.error?`<br><span class="err">${esc(p.error)}</span>`:""}</p>`}
+function batchWin(){const p=SC.prog,run=p&&!p.finished,list=`<div class="achl bwl" id="bwl">${(SC.q||[]).map(bwRow).join("")}</div>`,again=!run&&!(SC.empty&&SC.empty.force);
+ if(S.con){cnOpen(`<div class="bwk"><h2>Completar biblioteca</h2><p class="pd">Capa, fundo, ícone, sinopse, gênero, desenvolvedora e lançamento: só o que estiver faltando.</p>${bwHead()}${list}
+   <div class="mf">${run?`<button class="btn2 cf" data-da="bwcancel" data-fk="bw:cancel">Cancelar</button>`:again?`<button class="btn2 cf" data-da="bwforce" data-fk="bw:force">Procurar de novo os já tentados</button>`:""}<span class="sp"></span><button class="btn2 pri cf" data-da="bwclose" data-fk="bw:close">${run?"Continuar em segundo plano":"Fechar"}</button></div></div>`);
+  CN.back=()=>cnClose();CN.fxKey=CN.fx&&$("#cdlgi .bwk")&&CN.fx.dataset.fk||"bw:close";cnRestore();cnHints()}
+ else{SM.gid="";$("#mod").classList.add("on");$("#dlg").innerHTML=`<div class="bwk"><h2>Completar biblioteca</h2><p class="s">Capa, fundo, ícone, sinopse, gênero, desenvolvedora e lançamento: só o que estiver faltando em cada jogo.</p>${bwHead()}${list}
+   <div class="mf">${run?`<button class="btn2" id="bwcancel">Cancelar</button>`:again?`<button class="btn2" id="bwforce" title="Inclui os jogos procurados nos últimos 30 dias">Procurar de novo os já tentados</button>`:""}<span class="sp"></span><button class="btn2 pri" id="bwclose">${run?"Continuar em segundo plano":"Fechar"}</button></div></div>`}
+ const cur=document.querySelector(".bwr.cur");if(cur)cur.scrollIntoView({block:"nearest"})}
+const bwOpen=()=>!!(S.con?$("#cdlgi .bwk")&&$("#cdlg").classList.contains("on"):$("#mod").classList.contains("on")&&$("#dlg .bwk"));
+$("#mod").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!$("#dlg .bwk"))return;
+ if(t.id==="bwcancel")FA().scraper_batch_cancel();else if(t.id==="bwclose")closeForm();else if(t.id==="bwforce")batchStart(true);else if(t.dataset.bwrev)scrapeOpen(t.dataset.bwrev)});
+$("#cdlgi").addEventListener("click",async e=>{const t=e.target.closest("[data-da]");if(!t||!/^bw/.test(t.dataset.da)||!$("#cdlgi .bwk"))return;const da=t.dataset.da;
+ if(da==="bwcancel")FA().scraper_batch_cancel();else if(da==="bwclose")cnClose();else if(da==="bwforce")batchStart(true);
+ else if(da==="bwrev"){const id=t.dataset.bw;await cnGame(id,"set","g:scr");GW.q="";gwSearch()}});
+window.scraperProgress=p=>{SC.prog=p;if(p.item)SC.res[p.item.id]=p.item;SC.cur=p.current||"";if(bwOpen())batchWin();if(p.finished){SC.pend=p.pending||[];reload().then(()=>{if(S.tab==="set")scrUI()})}else if(S.tab==="set"&&SET.sec==="scr"&&$("#sprog"))$("#sprog").innerHTML=progH();if($("#gs").classList.contains("on"))gsUI();if(S.con){const e=$("#cprog");if(e)e.textContent=p.finished?"Concluído":"Buscando… "+p.done+"/"+p.total}};
 /* --- busca + revisão (modal) --- */
 async function scrapeOpen(gid){const g=G.find(x=>x.id===gid);SM.gid=gid;SM.q=g?g.n:"";SM.cands=[];SM.warn=[];SM.pv=null;SM.step="search";$("#mod").classList.add("on");await scrapeSearch()}
 async function scrapeSearch(){SM.busy="Buscando nas fontes…";SM.pv=null;SM.step="search";scrapeUI();const r=await FA().scraper_search(SM.gid,SM.q);SM.busy="";if(r.ok===false){SM.warn=[r.msg];SM.cands=[]}else{SM.q=r.query;SM.cands=r.candidates;SM.warn=r.warnings}scrapeUI()}
@@ -777,19 +839,44 @@ function achRow(a,attrs){const sec=a.hidden&&!a.unlocked&&!ACH.reveal,tag=attrs?
  const prog=a.progress?`<div class="pb"><i style="width:${Math.round(achP(a)*100)}%"></i></div>`:"";
  const right=a.unlocked?achDate(a.time)+(a.hardcore?" · hardcore":""):a.progress?`${fmtN(a.progress[0])} / ${fmtN(a.progress[1])}`:"Bloqueada";
  return`<${tag} class="achr${a.unlocked?"":" lock"}${attrs?" cf":""}"${attrs||""}>${a.icon&&!sec?`<img src="${esc(a.icon)}" alt="" loading="lazy" onerror="this.outerHTML='<span class=noi>🏆</span>'">`:`<span class="noi">${sec?"?":"🏆"}</span>`}<span class="at"><b>${esc(sec?"Conquista secreta":a.name)}</b><i>${esc(sec?(attrs?"Aperte A para revelar.":"Continue jogando para descobrir."):a.desc)}</i>${prog}</span><span class="am"><b>${esc(right)}</b><span${a.rarity!=null&&a.rarity<5?' class="rar"':""}>${esc([rarTxt(a.rarity),a.points!=null?a.points+" pts":""].filter(Boolean).join(" · "))}</span></span></${tag}>`}
+function achSumRefresh(){const g=G[S.sel];if(g&&$("#achs"))achSum(g)}
 async function achSum(g){const r=await FA().achievements_summary(g.id),el=$("#achs");if(!el||G[S.sel]!==g)return;
  if(!r.supported){el.remove();return}el.onclick=()=>achOpen(g.id);
  if(!r.ok){el.innerHTML=`<span class="tro">🏆</span><span class="ai"><b>Conquistas${r.source==="ra"?" · RetroAchievements":""}</b><span>${esc(r.reason||"A Steam ainda não sincronizou as conquistas deste jogo")}</span></span>`;return}
  const p=achPct(r.unlocked,r.total);el.innerHTML=`<span class="tro">🏆</span><span class="ai"><b>${r.unlocked} de ${r.total} conquistas · ${p}%${r.source==="ra"?" · RetroAchievements":""}</b><div class="pb"><i style="width:${p}%"></i></div></span><span class="btn2">Ver</span>`}
-async function achOpen(id){ACH.id=id;ACH.d=null;ACH.f="all";achUI();$("#mod").classList.add("on");const r=await FA().achievements(id);if(ACH.id!==id)return;ACH.d=r;achUI()}
+async function achOpen(id){ACH.id=id;ACH.d=null;ACH.f="all";ACH.m="";achUI();$("#mod").classList.add("on");const r=await FA().achievements(id);if(ACH.id!==id)return;ACH.d=r;achUI()}
+/* RetroAchievements: procurar de novo, escolher o jogo à mão e ver as versões aceitas */
+const raNote=d=>d&&d.source==="ra"&&d.match==="manual"?`<div class="${d.hash_ok?"box":"err"}" style="margin:0 0 12px">${d.hash_ok?"✔ Jogo escolhido à mão, e o seu arquivo é uma versão aceita.":"⚠ Jogo escolhido à mão. A lista aparece aqui, mas o seu arquivo não é uma versão aceita pelo RetroAchievements: o emulador só desbloqueia conquistas com uma das versões da lista."}</div>`:"";
+const raTools=(d,btn)=>d&&d.source==="ra"&&(d.ok||d.can_search)?[["rare","🔄 Procurar de novo","Calcula de novo pelo arquivo e baixa a lista nova do RetroAchievements"],["rasr","🔎 Escolher o jogo","Procura pelo nome, para quando o arquivo não é reconhecido"],...(d.ok?[["raver","📄 Versões aceitas","Quais arquivos o RetroAchievements reconhece"]]:[])].map(x=>btn(...x)).join(""):"";
+async function raRematch(id,after){toast("Procurando de novo…");const r=await FA().ra_rematch(id);toast(r.msg,!r.ok);after()}
+async function raSearchRun(id,q){const r=await FA().ra_search(id,q);ACH.sr=r;return r}
+function raSearchBody(sr,row){if(!sr)return`<div class="busy"><span class="spin"></span>Procurando no RetroAchievements…</div>`;if(!sr.ok)return`<p class="s">${esc(sr.msg)}</p>`;
+ return (sr.items.length?sr.items.map(x=>row(x)).join(""):`<p class="s">Nada parecido com “${esc(sr.query)}”. Tente outro nome (em inglês, sem região).</p>`)}
+const raItem=(x,linked,attrs)=>`<button class="achr${attrs?" cf":""}"${attrs||` data-ral="${x.id}"`}>${x.icon?`<img src="${esc(x.icon)}" alt="" loading="lazy">`:`<span class="noi">🏆</span>`}<span class="at"><b>${esc(x.title)}</b><i>${x.ach} conquista${x.ach===1?"":"s"}</i></span><span class="am"><b>${linked===x.id?"✔ Escolhido":"Escolher"}</b></span></button>`;
 function achUI(){const g=G.find(x=>x.id===ACH.id)||{n:""},d=ACH.d;let body;
+ if(ACH.m==="sr"){const sr=ACH.sr;$("#dlg").innerHTML=`<h2>Escolher o jogo no RetroAchievements</h2><p class="s">${esc(g.n)}${sr&&sr.file?" · arquivo: "+esc(sr.file):""}</p>
+  <div class="fr"><input id="raq" value="${esc(ACH.q||"")}" placeholder="Nome do jogo (em inglês)"><button class="btn2" id="raqb">Procurar</button></div>
+  <div class="achl" style="margin-top:12px;max-height:52vh;overflow:auto">${raSearchBody(sr,x=>raItem(x,sr.linked))}</div>
+  <p class="s" style="margin-top:10px">Escolher à mão mostra a lista e o progresso. Para o emulador desbloquear, o arquivo precisa ser uma versão aceita (o NeoSD avisa se não for).</p>
+  <div class="mf">${sr&&sr.linked?`<button class="btn2" id="raun">Desfazer a escolha</button>`:""}<span class="sp"></span><button class="btn2" id="raback">Voltar</button></div>`;
+  const go=async()=>{ACH.q=$("#raq").value;ACH.sr=null;achUI();await raSearchRun(ACH.id,ACH.q);if(ACH.m==="sr")achUI()};
+  $("#raqb").onclick=go;$("#raq").onkeydown=e=>{if(e.key==="Enter")go()};$("#raback").onclick=()=>{ACH.m="";achUI()};
+  if($("#raun"))$("#raun").onclick=async()=>{await FA().ra_link(ACH.id,0);ACH.m="";ACH.d=null;achUI();ACH.d=await FA().achievements(ACH.id);achUI()};
+  $("#dlg").querySelectorAll("[data-ral]").forEach(b=>b.onclick=async()=>{const r=await FA().ra_link(ACH.id,+b.dataset.ral);toast(r.hash_ok?"Jogo escolhido: "+r.title:"Jogo escolhido. O seu arquivo não é uma versão aceita: veja “Versões aceitas”.",!r.hash_ok);ACH.m="";ACH.d=null;achUI();ACH.d=await FA().achievements(ACH.id);achUI();achSumRefresh()});return}
+ if(ACH.m==="ver"){const v=ACH.ver;$("#dlg").innerHTML=`<h2>Versões aceitas</h2><p class="s">${esc(d&&d.title||g.n)} · o RetroAchievements reconhece estes arquivos (os nomes são do padrão No-Intro/Redump)</p>
+  <div class="achl" style="max-height:56vh;overflow:auto">${!v?`<div class="busy"><span class="spin"></span>Lendo…</div>`:!v.ok||!v.items.length?`<p class="s">Não consegui ler a lista agora.</p>`:v.items.map(x=>`<div class="achr"><span class="at"><b>${esc(x.name||x.md5)}</b><i>MD5 ${esc(x.md5)}${x.labels.length?" · "+esc(x.labels.join(", ")):""}</i></span></div>`).join("")}</div>
+  <div class="mf"><span class="sp"></span><button class="btn2" id="raback">Voltar</button></div>`;$("#raback").onclick=()=>{ACH.m="";achUI()};return}
  if(!d)body=`<div class="busy"><span class="spin"></span>Lendo as conquistas…</div>`;
  else if(!d.ok)body=`<p class="s">${esc(d.reason||"Sem conquistas.")}</p>${d.source==="ra"?`<button class="btn2" id="racfg">Configurar a conta do RetroAchievements</button>`:""}`;
  else{const p=achPct(d.unlocked,d.total),hid=d.items.some(a=>a.hidden&&!a.unlocked),items=achSorted(d.items).filter(a=>ACH.f==="all"||(ACH.f==="on")===a.unlocked);
-  body=`<div class="achhd"><b>${achHead(d)}</b><div class="pb"><i style="width:${p}%"></i></div></div>
+  body=`${raNote(d)}<div class="achhd"><b>${achHead(d)}</b><div class="pb"><i style="width:${p}%"></i></div></div>
   <div class="achf">${[["all","Todas",d.total],["on","Desbloqueadas",d.unlocked],["off","Bloqueadas",d.total-d.unlocked]].map(([k,t,n])=>`<button class="${ACH.f===k?"on":""}" data-af="${k}">${t}<span>${n}</span></button>`).join("")}${hid?`<button class="${ACH.reveal?"on":""}" data-af="rev">Mostrar secretas</button>`:""}</div>
   <div class="achl">${items.map(a=>achRow(a)).join("")||`<p class="s">Nada aqui.</p>`}</div>`}
- $("#dlg").innerHTML=`<h2>Conquistas</h2><p class="s">${esc(g.n)} · ${d&&d.source==="ra"?`RetroAchievements${d.console?" · "+esc(d.console):""}`:"Steam"}</p>${body}<div class="mf">${d&&d.ok&&d.source!=="ra"?`<button class="btn2" id="achdbg" title="Debug: não muda nada na Steam">Simular desbloqueio</button>`:""}<span class="sp"></span><button class="btn2" id="achx">Fechar</button></div>`;
+ $("#dlg").innerHTML=`<h2>Conquistas</h2><p class="s">${esc(g.n)} · ${d&&d.source==="ra"?`RetroAchievements${d.console?" · "+esc(d.console):""}`:"Steam"}</p>${body}<div class="mf">${d&&d.ok&&d.source!=="ra"?`<button class="btn2" id="achdbg" title="Debug: não muda nada na Steam">Simular desbloqueio</button>`:""}${raTools(d,(k,t,h)=>`<button class="btn2" data-ra="${k}" title="${esc(h)}">${t}</button>`)}<span class="sp"></span><button class="btn2" id="achx">Fechar</button></div>`;
+ $("#dlg").querySelectorAll("[data-ra]").forEach(b=>b.onclick=async()=>{const k=b.dataset.ra,id=ACH.id;
+  if(k==="rare")raRematch(id,async()=>{ACH.d=null;achUI();ACH.d=await FA().achievements(id);achUI();achSumRefresh()});
+  else if(k==="rasr"){ACH.m="sr";ACH.sr=null;ACH.q="";achUI();await raSearchRun(id,"");ACH.q=ACH.sr&&ACH.sr.query||"";if(ACH.m==="sr")achUI()}
+  else if(k==="raver"){ACH.m="ver";ACH.ver=null;achUI();ACH.ver=await FA().ra_versions(id);if(ACH.m==="ver")achUI()}});
  if($("#achdbg"))$("#achdbg").onclick=()=>achDebug(ACH.id,0);if($("#racfg"))$("#racfg").onclick=()=>{ACH.id=null;closeForm();openSettings("emu")};
  $("#achx").onclick=()=>{ACH.id=null;closeForm()};$("#dlg").querySelectorAll("[data-af]").forEach(b=>b.onclick=()=>{const k=b.dataset.af;if(k==="rev")ACH.reveal=!ACH.reveal;else ACH.f=k;achUI()})}
 async function achDebug(id,d){const r=await FA().ach_debug(id||null,d||0);if(!r.ok){toast(r.msg||"Não deu para simular.",1);return}
@@ -953,7 +1040,7 @@ $("#setc").addEventListener("click",async e=>{if(SET.sec!=="look")return;const a
  else if(t.dataset.ca==="wadd"){const r=await a.wallpaper_add();if(r.ok){toast("Papel de parede adicionado");lookLoad()}else if(r.msg)toast(r.msg,1)}});
 /* ===== Modo Console 2.0 ===== */
 const CN={tab:0,sec:0,fx:null,fxKey:"",mainKey:"",dlg:false,osk:null,kiosk:false,apps:[],libs:[],cfg:null,sys:null,scan:[],cb:null,bgTok:0,bgUrl:"",prog:null,bgc:null};
-const CSEC=["Bibliotecas","Scraper","Emulação","Aparência","Rede","Sistema","Sobre","Sair"],OSKR=["1234567890","qwertyuiop","asdfghjkl","zxcvbnm"],OSKX="-_.@:/!#";
+const CSEC=["Bibliotecas","Scraper","Emulação","Aparência","Rede","Sistema","Sobre","Sair","Perfil"],CSEC_ORDER=[8,0,1,2,3,4,5,6,7],OSKR=["1234567890","qwertyuiop","asdfghjkl","zxcvbnm"],OSKX="-_.@:/!#";
 const KB=(k,t)=>`<span><i class="kb">${k}</i>${t}</span>`,sw=on=>`<span class="sw${on?" on":""}"><u></u></span>`,ini=n=>n.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();
 /* foco espacial: setas/direcionais andam pro elemento mais próximo naquela direção */
 const cnList=()=>[...(CN.dlg?$("#cdlgi"):$("#cmain")).querySelectorAll(".cf")].filter(e=>e.offsetParent!==null&&!e.disabled);
@@ -1037,7 +1124,7 @@ function cnGames(){const m=$("#cmain"),vis=CV();
  if(G.length&&!vis.length){m.innerHTML=`<div class="hero"><h1>Seus jogos de console estão na aba Emuladores</h1><p>Aperte RB para ver os sistemas. Para mostrar os jogos de emulador também aqui, vá em Configurações → Emulação.</p></div>`;cnBg(null);return}
  if(!G.length){m.innerHTML=`<div class="hero"><h1>Nenhum jogo ainda</h1><p>Aperte Y para adicionar um jogo do PC, ou escaneie suas bibliotecas em Configurações.</p></div>`;cnBg(null);return}
  if(!vis.includes(S.ci))S.ci=vis[0];
- m.innerHTML=`<div class="hero" id="hero"></div><div class="row" id="row">${vis.map(i=>{const g=G[i];return`<div class="tile${act(g)?"":" off"}" data-i="${i}" style="--h1:${g.h[0]};--h2:${g.h[1]}">${cover(g,tag(g))}</div>`}).join("")}</div>`;cnSel(true)}
+ m.innerHTML=`<div class="hero" id="hero"></div><div class="row" id="row">${vis.map(i=>{const g=G[i];return`<div class="tile${act(g)?"":" off"}${landCls(g)}" data-i="${i}" style="--h1:${g.h[0]};--h2:${g.h[1]}${landSty(g)}">${cover(g,tag(g))}</div>`}).join("")}</div>`;cnSel(true)}
 function cnSel(jump){const g=G[S.ci];hue(g);
  $("#hero").innerHTML=`<h1>${esc(g.n)}</h1>${badges(g)}<p>${esc(g.d||"")}</p><div><button class="play${act(g)?"":" dis"}" id="cpl">${act(g)?"▶ Jogar":g.s==="disc"&&!g.drive?"💿 Coloque o disco":"Indisponível"}</button></div>`;
  const r=$("#row");[...r.children].forEach(t=>t.classList.toggle("sel",+t.dataset.i===S.ci));const t=r.querySelector(`[data-i="${S.ci}"]`)||r.children[0];r.scrollTo({left:t.offsetLeft-r.offsetLeft-44,behavior:jump?"auto":"smooth"});cnBg(g)}
@@ -1063,6 +1150,7 @@ function cnPane(){const c=CN.cfg,s=CN.sys;
   const lab=(g)=>{const c=(g.choices||[]).find(x=>x[0]===g.value);return c?c[1]:"Automático"};
   return`<h2 class="ph">Emulação</h2><p class="pd">RetroBat ${esc(st.version)} · ${st.systems.reduce((n,x)=>n+x.count,0)} jogos em ${st.systems.length} sistemas</p>${cnRaRows(CN.ra)}<h3 class="psub">Opções</h3><button class="crowi cf" data-ca="rbin" data-fk="rb:in"><span><b>Jogos de emulador também na aba Jogos</b><i>Eles sempre ficam na aba Emuladores, separados por sistema</i></span>${sw(st.in_games)}</button>${o.global.map(g=>g.type==="bool"?`<button class="crowi cf" data-ca="rbb" data-k="${g.key}" data-fk="rb:${g.key}"><span><b>${esc(g.label)}</b></span>${sw(g.value==="true")}</button>`:`<button class="crowi cf" data-ca="rbo" data-k="${g.key}" data-fk="rb:${g.key}"><span><b>${esc(g.label)}</b></span><em>${esc(lab(g))}</em></button>`).join("")}${CN.rbem?`<h3 class="psub">Emuladores (instalar e configurar)</h3>`+CN.rbem.map(e=>`<button class="crowi cf" data-ca="eopen" data-id="${esc(e.id)}" data-fk="em:${esc(e.id)}"><span class="eml">${e.logo?`<img class="cemlogo" src="${e.logo}" alt="">`:""}<span><b>${esc(e.name)}</b><i>${e.installed?"Instalado":"Não instalado · o RetroBat baixa ao abrir"}</i></span></span><em>${e.installed?"Abrir":"Baixar"}</em></button>`).join(""):""}${o.systems.length?`<h3 class="psub">Emulador por sistema</h3>`+o.systems.map(x=>`<button class="crowi cf" data-ca="rbo" data-k="${x.name}@emu" data-fk="rb:${x.name}"><span><b>${esc(x.fullname)}</b><i>${x.count} jogo${x.count===1?"":"s"}</i></span><em>${esc(lab(x))}</em></button>`).join(""):""}`}
  if(CN.sec===3){const b=CN.bgc;if(!b)return"";return`<h2 class="ph">Aparência</h2><p class="pd">O que aparece atrás dos jogos no modo console.</p>${BGM.map(([k,n,d])=>`<button class="crowi cf" data-ca="bgm" data-m="${k}" data-fk="bg:${k}"><span><b>${n}</b><i>${d}</i></span><span class="chkb${b.mode===k?" on":""}">✓</span></button>`).join("")}<h3 class="psub">Papel de parede</h3><div class="wgrid">${wallTiles(b,true)}</div><p class="pd" style="font-size:13px">Escolher uma imagem já liga o modo papel de parede. Imagens colocadas na pasta library/wallpapers também aparecem aqui.</p><h3 class="psub">Sons e abertura</h3>${CN.sfx?`<button class="crowi cf" data-ca="sfxs" data-k="on" data-fk="sfx:on"><span><b>Sons do modo console</b><i>${CN.sfx.sounds.filter(x=>x.file).length} de ${CN.sfx.sounds.length} sons encontrados na pasta SFX</i></span>${sw(CN.sfx.enabled)}</button><button class="crowi cf" data-ca="sfxvol" data-fk="sfx:vol"><span><b>Volume</b><i>Aperte A para mudar</i></span><em>${CN.sfx.volume}%</em></button><button class="crowi cf" data-ca="sfxs" data-k="intro" data-fk="sfx:intro"><span><b>Animação de abertura</b><i>Logo do NeoSD e som ao entrar no modo console</i></span>${sw(CN.sfx.intro)}</button><button class="crowi cf" data-ca="introtest" data-fk="sfx:test"><span><b>Ver a abertura</b></span><em>Ver</em></button>`:""}<h3 class="psub">Conquistas</h3>${achOpts(CN.ach).map(([k,n,d,on])=>`<button class="crowi cf" data-ca="achs" data-k="${k}" data-fk="ach:${k}"><span><b>${n}</b><i>${d}</i></span>${sw(on)}</button>`).join("")}<button class="crowi cf" data-ca="achdbg" data-d="0" data-fk="ach:dbg0"><span><b>Debug: simular conquista agora</b><i>Uma conquista real de um jogo da Steam, sem mudar nada na Steam</i></span><em>Simular</em></button><button class="crowi cf" data-ca="achdbg" data-d="10" data-fk="ach:dbg10"><span><b>Debug: simular em 10 s</b><i>Dá tempo de abrir o jogo. Se não aparecer por cima dele, use “tela cheia sem bordas”</i></span><em>Simular</em></button>`}
+ if(CN.sec===8)return profPane();
  if(CN.sec===6){const a=CN.about;return a?`<h2 class="ph">Sobre o NEO SD</h2><p class="pd">Versão ${esc(a.version||"—")}${a.retrobat_found?` · RetroBat ${esc(a.retrobat)}`:""}</p>${cnUpdRows(UPD)}${aboutHtml(a,true)}`:""}
  if(CN.sec===4){const n=CN.net;if(!n)return"";if(!n.retrobat)return`<h2 class="ph">Rede</h2><p class="pd">Indique a pasta do RetroBat no modo desktop, em Configurações → Emulação.</p>`;
   return`<h2 class="ph">Rede</h2><p class="pd">Mande jogos de outro PC pela rede de casa. Este PC: ${esc(n.computer)}${n.ips.length?" · "+esc(n.ips[0]):""}</p>
@@ -1076,13 +1164,13 @@ async function cnSettings(){const a=FA();
  if(CN.sec===2&&CN.rb&&CN.rb.found&&!CN.rbem){CN.rbem=await a.retrobat_emulators()}
  if(CN.tab===2)cnBg(null);
  if(CN.tab!==2)return;
- $("#cmain").innerHTML=`<div class="cset"><div class="cnav">${CSEC.map((n,i)=>`<button class="cni cf${i===CN.sec?" on":""}" data-ca="sec" data-i="${i}" data-fk="sec:${i}">${n}</button>`).join("")}</div><div class="cpane">${cnPane()}</div></div>`;cnRestore()}
+ $("#cmain").innerHTML=`<div class="cset"><div class="cnav">${CSEC_ORDER.map(i=>`<button class="cni cf${i===CN.sec?" on":""}" data-ca="sec" data-i="${i}" data-fk="sec:${i}">${CSEC[i]}</button>`).join("")}</div><div class="cpane">${cnPane()}</div></div>`;cnRestore()}
 $("#cmain").addEventListener("click",async e=>{const t=e.target.closest("[data-ca],.tile,#cpl");if(!t)return;const a=FA(),ca=t.dataset.ca;
  if(t.classList.contains("tile")){const i=+t.dataset.i;if(i===S.ci)cnGame(G[i].id);else{S.ci=i;cnSel()}return}if(t.id==="cpl"){launch(G[S.ci]);return}
  if(ca==="app"){const r=await a.apps_launch(t.dataset.id);r.ok?toast("Abrindo "+(CN.apps.find(x=>x.id===t.dataset.id)||{}).name+"…"):toast(r.msg,1)}
  else if(ca==="sec"){CN.sec=+t.dataset.i;cnSettings()}
  else if(ca==="rbget"){RBS&&RBS.busy?(RBS.state==="downloading"&&rbsCancel()):rbsStart()}else if(ca==="scan")cnScan(t.dataset.s)
- else if(ca==="batch"){const r=await a.scraper_batch_start();if(!r.ok)toast(r.msg,1);else{CN.prog={done:0,total:r.total,finished:false};cnSettings()}}
+ else if(ca==="batch"){if(SC.prog&&!SC.prog.finished){batchWin();return}const r=await batchStart();if(r)CN.prog={done:0,total:r.total,finished:false}}
  else if(ca==="tgl"){await a.scraper_save_config({[t.dataset.k]:!CN.cfg[t.dataset.k]});cnSettings()}
  else if(ca==="lang"){await a.scraper_save_config({language:CN.cfg.language==="pt"?"en":"pt"});cnSettings()}
  else if(ca==="pen"){const p=CN.cfg.providers.find(x=>x.id===t.dataset.p);await a.scraper_save_config({[p.id]:{enabled:!p.enabled}});cnSettings()}
@@ -1135,10 +1223,10 @@ async function cnGame(id,view,fk){const g=G.find(x=>x.id===id);if(!g)return;GW.i
  const[w,h]=scrWH(),r=await bgMemo("g:"+g.id+":"+w,()=>FA().console_bg(g.id,w,h));
  if(GW.id===id&&r.url){GW.url=r.url;const b=$("#gwb");if(b){b.style.backgroundImage=`url("${r.url}")`;b.classList.remove("none")}}
  if(GW.view==="list"){GW.q="";gwSearch()}}
-function gwBack(){if(GW.view==="info"){cnClose();return}const from=GW.view;GW.view=from==="pv"?"list":from==="list"?"set":"info";GW.busy="";CN.fxKey=GW.view==="set"?"g:scr":GW.view==="info"?(from==="ach"?"g:ach":"g:set"):"";gwRender()}
+function gwBack(){if(GW.view==="info"){cnClose();return}const from=GW.view;if(from==="rasr"||from==="raver"){GW.view="ach";CN.fxKey="g:"+(from==="rasr"?"rasr":"raver");gwRender();return}GW.view=from==="pv"?"list":from==="list"?"set":"info";GW.busy="";CN.fxKey=GW.view==="set"?"g:scr":GW.view==="info"?(from==="ach"?"g:ach":"g:set"):"";gwRender()}
 function gwRender(){const g=gwG();if(!g){cnClose();return}const keep=CN.fxKey;
  const meta=[["Desenvolvedora",g.dev],["Lançamento",g.year],["Tempo jogado",g.time],["Tamanho",g.size]].filter(m=>m[1]&&m[1]!=="—");
- const sub={set:"Configurações do jogo",list:"Buscar capa e dados online",pv:"Escolha o que aplicar",ach:"Conquistas"}[GW.view];
+ const sub={set:"Configurações do jogo",list:"Buscar capa e dados online",pv:"Escolha o que aplicar",ach:"Conquistas",rasr:"Escolher o jogo no RetroAchievements",raver:"Versões aceitas pelo RetroAchievements"}[GW.view];
  const top=GW.view==="info"?`${meta.length?`<div class="gwm">${meta.map(m=>`<span>${m[0]}<b>${esc(String(m[1]))}</b></span>`).join("")}</div>`:""}<div class="gwa"><button class="play cf${act(g)?"":" dis"}" data-da="gplay" data-fk="g:play">${act(g)?"▶ Jogar":"Indisponível"}</button><button class="btn2 cf" data-da="gset" data-fk="g:set">⚙ Configurações</button>${hasAch(g)?`<button class="btn2 cf" data-da="gach" data-fk="g:ach">🏆 ${GW.achs?`${GW.achs.unlocked}/${GW.achs.total}`:"Conquistas"}</button>`:""}</div>`:`<div class="gwsub">${sub}</div>`;
  const busy=GW.busy?`<div class="busy"><span class="spin"></span>${esc(GW.busy)}</div>`:"";
  let body="";
@@ -1156,16 +1244,20 @@ function gwRender(){const g=gwG();if(!g){cnClose();return}const keep=CN.fxKey;
    +row("gren","g:ren","Renomear",esc(g.n),"Editar")
    +row("gdel","g:del","Remover da biblioteca","Não apaga o jogo do computador","Remover")}
  else if(GW.view==="list")body=busy||`${GW.warn.map(w=>`<div class="err">${esc(w)}</div>`).join("")}${GW.cands.map((c,i)=>`<button class="crowi gcand cf" data-da="gpick" data-i="${i}" data-fk="gc:${i}">${thumbH(c.thumb||c.cover,"gct")}<span><b>${esc(c.title)}${c.year?` (${c.year})`:""}</b><i>${esc([c.platform_text,PN[c.provider]||c.provider,Math.round((c.score||0)*100)+"%"].filter(Boolean).join(" · "))}</i></span></button>`).join("")||`<p class="pd">Nada encontrado com “${esc(GW.q)}”.</p>`}<button class="crowi cf" data-da="gq" data-fk="g:q"><span><b>Buscar com outro nome</b><i>Atual: ${esc(GW.q)}</i></span><em>Editar</em></button>`;
+ else if(GW.view==="rasr"){const sr=GW.sr;
+  body=`<button class="crowi cf" data-da="grasq" data-fk="g:rasq"><span><b>Nome procurado</b><i>${esc(sr&&sr.query||"…")}</i></span><em>Editar</em></button>${sr&&sr.linked?`<button class="crowi cf" data-da="graun" data-fk="g:raun"><span><b>Desfazer a escolha</b><i>Volta a identificar pelo arquivo</i></span><em>Desfazer</em></button>`:""}<div class="achl" style="margin-top:10px">${raSearchBody(sr,x=>raItem(x,sr.linked,` data-da="gral" data-ral="${x.id}" data-fk="gr:${x.id}"`))}</div>`}
+ else if(GW.view==="raver"){const v=GW.ver;body=`<div class="achl">${!v?`<div class="busy"><span class="spin"></span>Lendo…</div>`:!v.ok||!v.items.length?`<p class="pd">Não consegui ler a lista agora.</p>`:v.items.map((x,i)=>`<button class="achr cf" data-fk="gv:${i}"><span class="at"><b>${esc(x.name||x.md5)}</b><i>MD5 ${esc(x.md5)}${x.labels.length?" · "+esc(x.labels.join(", ")):""}</i></span></button>`).join("")}</div>`}
  else if(GW.view==="ach"){const d=GW.ach,p=d&&d.ok?achPct(d.unlocked,d.total):0;
-  body=!d?`<div class="busy"><span class="spin"></span>Lendo as conquistas…</div>`:!d.ok?`<p class="pd">${esc(d.reason||"Sem conquistas.")}</p>`
-   :`<div class="achhd"><b>${achHead(d)}</b><div class="pb"><i style="width:${p}%"></i></div></div><div class="achl">${achSorted(d.items).map(a=>achRow(a,` data-da="gachr" data-fk="ga:${a.key}"`)).join("")}</div>${d.source==="ra"?"":`<button class="crowi cf" data-da="gachdbg" data-fk="g:achdbg" style="margin-top:10px"><span><b>Debug: simular um desbloqueio</b><i>Mostra o aviso com uma conquista deste jogo, sem mudar nada na Steam</i></span><em>Simular</em></button>`}`}
+  const rat=raTools(d,(k,t,h)=>`<button class="crowi cf" data-da="g${k}" data-fk="g:${k}" style="margin-top:10px"><span><b>${t}</b><i>${esc(h)}</i></span><em>Abrir</em></button>`);
+  body=!d?`<div class="busy"><span class="spin"></span>Lendo as conquistas…</div>`:!d.ok?`<p class="pd">${esc(d.reason||"Sem conquistas.")}</p>${rat}`
+   :`${raNote(d)}${rat?`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">${raTools(d,(k,t)=>`<button class="btn2 cf" data-da="g${k}" data-fk="g:${k}">${t}</button>`)}</div>`:""}<div class="achhd"><b>${achHead(d)}</b><div class="pb"><i style="width:${p}%"></i></div></div><div class="achl">${achSorted(d.items).map(a=>achRow(a,` data-da="gachr" data-fk="ga:${a.key}"`)).join("")}</div>${d.source==="ra"?"":`<button class="crowi cf" data-da="gachdbg" data-fk="g:achdbg" style="margin-top:10px"><span><b>Debug: simular um desbloqueio</b><i>Mostra o aviso com uma conquista deste jogo, sem mudar nada na Steam</i></span><em>Simular</em></button>`}`}
  else if(GW.view==="pv"&&(GW.busy||!GW.pv))body=busy;
  else if(GW.view==="pv"){const pv=GW.pv,sl=GW.sel;
   const strip=k=>{const a=pv.art[k];if(!a||!a.options.length)return"";const wide=k==="hero"?" wide":"";
    return`<div class="gsec">${{cover:"Capa",hero:"Banner"}[k]}</div><div class="gstrip"><button class="gopt cf${wide}${sl[k]<0?" on":""}" data-da="gopt" data-k="${k}" data-i="-1" data-fk="go:${k}:-1"><span class="kp">${a.current?"Manter a atual":"Não usar"}</span></button>${a.options.map((o,i)=>`<button class="gopt cf${wide}${sl[k]===i?" on":""}" data-da="gopt" data-k="${k}" data-i="${i}" data-fk="go:${k}:${i}">${o.url==="@cover"?`<span class="kp">da capa</span>`:thumbH(o.thumb||o.url,"")}<small>${esc(o.source||"")}</small></button>`).join("")}</div>`};
   const nf=pv.fields.filter(f=>f.default_on).length;
   body=busy||`${strip("cover")}${strip("hero")}<button class="crowi cf" data-da="gfld" data-fk="g:fld"><span><b>Completar sinopse, nota e ficha</b><i>${nf?`${nf} informaç${nf===1?"ão":"ões"} que faltam (o que já existe não é trocado)`:"Nada faltando"}</i></span>${sw(sl.fields&&nf>0)}</button><div class="mf"><span class="sp"></span><button class="btn2 pri cf" data-da="gapply" data-fk="g:ap">Aplicar</button></div>`}
- cnOpen(`<div class="gwb${GW.url?"":" none"}" id="gwb" style="--h1:${g.h[0]};--h2:${g.h[1]}${GW.url?`;background-image:url('${GW.url}')`:""}"></div><div class="gwh${GW.view==="info"?"":" cmp"}"><div class="gwc">${cover(g)}</div><div class="gwt"><h2>${esc(g.n)}</h2>${badges(g)}${top}</div></div><div class="gwbody">${body}</div>`,"gw");
+ cnOpen(`<div class="gwb${GW.url?"":" none"}" id="gwb" style="--h1:${g.h[0]};--h2:${g.h[1]}${GW.url?`;background-image:url('${GW.url}')`:""}"></div><div class="gwh${GW.view==="info"?"":" cmp"}"><div class="gwc${landCls(g)}" style="${landSty(g).slice(1)}">${cover(g)}</div><div class="gwt"><h2>${esc(g.n)}</h2>${badges(g)}${top}</div></div><div class="gwbody">${body}</div>`,"gw");
  CN.back=gwBack;if(keep){CN.fxKey=keep;cnRestore()}cnHints()}
 async function gwSearch(q){GW.view="list";GW.busy="Buscando nas fontes…";GW.cands=[];GW.warn=[];GW.q=q||GW.q||"";gwRender();
  const r=await FA().scraper_search(GW.id,q||null);if(GW.view!=="list")return;GW.busy="";
@@ -1209,6 +1301,11 @@ function cnAddUI(){const d=CN.add,keep=CN.fxKey;cnOpen(`<h2>Adicionar jogo do PC
  <div class="mf"><button class="btn2 cf" data-da="apick" data-fk="a:p">Outro executável</button><span class="sp"></span><button class="btn2 cf" data-da="close" data-fk="d:c">Cancelar</button><button class="btn2 pri cf" data-da="aok" data-fk="a:ok">Adicionar</button></div>`);if(keep){CN.fxKey=keep;cnRestore()}}
 $("#cdlgi").addEventListener("click",async e=>{const t=e.target.closest("[data-da]");if(!t||t.disabled)return;const da=t.dataset.da,a=FA(),g=gwG();
  if(da==="gplay")launch(g);else if(da==="gset"){GW.view="set";CN.fxKey="g:scr";gwRender()}
+ else if(da==="grare"){const id=GW.id;raRematch(id,async()=>{GW.ach=null;gwRender();const r=await a.achievements(id);if(GW.id===id&&GW.view==="ach"){GW.ach=r;CN.fxKey="g:rare";gwRender()}})}
+ else if(da==="grasr"||da==="grasq"){const id=GW.id,run=async q=>{GW.view="rasr";GW.sr=null;CN.fxKey="";gwRender();await raSearchRun(id,q);GW.sr=ACH.sr;if(GW.id===id&&GW.view==="rasr"){CN.fxKey="";gwRender()}};
+  if(da==="grasr")run("");else oskOpen({title:"Nome do jogo (em inglês)",value:GW.sr&&GW.sr.query||"",done:v=>{cnGame(id,"rasr");run(v)},back:()=>{cnGame(id,"rasr");GW.sr=ACH.sr;gwRender()}})}
+ else if(da==="gral"||da==="graun"){const id=GW.id,r=await a.ra_link(id,da==="gral"?+t.dataset.ral:0);toast(da==="graun"?"Voltou a identificar pelo arquivo":r.hash_ok?"Jogo escolhido: "+r.title:"Jogo escolhido. O seu arquivo não é uma versão aceita: veja “Versões aceitas”.",da==="gral"&&!r.hash_ok);GW.view="ach";GW.ach=null;CN.fxKey="";gwRender();const x=await a.achievements(id);if(GW.id===id&&GW.view==="ach"){GW.ach=x;gwRender()}}
+ else if(da==="graver"){const id=GW.id;GW.view="raver";GW.ver=null;CN.fxKey="";gwRender();const v=await a.ra_versions(id);if(GW.id===id&&GW.view==="raver"){GW.ver=v;gwRender()}}
  else if(da==="gach"){const id=GW.id;GW.view="ach";GW.ach=null;CN.fxKey="";gwRender();const r=await a.achievements(id);if(GW.id!==id||GW.view!=="ach")return;GW.ach=r;
   const first=r.ok&&achSorted(r.items)[0];CN.fxKey=first?"ga:"+first.key:"";gwRender()}
  else if(da==="gachdbg")achDebug(GW.id,0);
@@ -1384,6 +1481,89 @@ $("#cdlgi").addEventListener("click",async e=>{const t=e.target.closest("[data-d
  else if(da==="dsscr"){if(!d.scraper)return;const id=await dsSave();if(!id)return;await cnGame(id,"set","g:scr");GW.q="";gwSearch()}
  else if(da==="dsplay"){const id=await dsSave();if(id){cnClose();launch(G.find(g=>g.id===id))}}
  else if(da==="dsok"){const id=await dsSave();cnClose();if(id)toast("💿 Salvo")}});
+/* ===== perfis: nome, foto, nível e troféus (como os usuários do PS5) ===== */
+let PROF={profiles:[],active:"",ask:true};
+const NEO={roxo:["#7b5cff","#2fc6e0"],vermelho:["#ff4d6d","#b5179e"],verde:["#2ee59d","#0f8f8e"],laranja:["#ffb03a","#ff5e3a"],rosa:["#ff7eb6","#9b5cff"],dourado:["#ffd166","#c97d16"],grafite:["#626878","#1b1e2a"],gelo:["#f1f6ff","#9cc0ff"]};
+const EMO={controle:"🎮",estrela:"⭐",fantasma:"👻",coroa:"👑",foguete:"🚀",gato:"🐱",dragao:"🐉",alien:"👾",raio:"⚡",fogo:"🔥",caveira:"💀",cogumelo:"🍄"};
+const AVS=[...Object.keys(NEO).map(k=>"neo-"+k),...Object.keys(EMO).map(k=>"emo-"+k)];
+let AVN=0;
+function avHTML(av,size,name){const sz=`width:${size}px;height:${size}px;font-size:${Math.round(size*.42)}px`;
+ if(/^data:/.test(av||""))return`<span class="av" style="${sz}"><img src="${av}" alt=""></span>`;
+ const m=/^neo-(\w+)$/.exec(av||"");if(m&&NEO[m[1]]){const [a,b]=NEO[m[1]],id="ng"+(++AVN),card=m[1]==="gelo"?"#24304d":"#fff";
+  return`<span class="av" style="${sz}"><svg viewBox="0 0 100 100"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id})"/><path d="M44 24H70V78H30V38Z" fill="${card}"/><g fill="url(#${id})" opacity=".9"><rect x="45" y="29" width="4" height="11" rx="1.6"/><rect x="52" y="29" width="4" height="11" rx="1.6"/><rect x="59" y="29" width="4" height="11" rx="1.6"/><rect x="65" y="29" width="3" height="11" rx="1.5" opacity="0"/></g><rect x="38" y="57" width="24" height="12" rx="3.5" fill="url(#${id})" opacity=".9"/></svg></span>`}
+ const e=/^emo-(\w+)$/.exec(av||"");if(e&&EMO[e[1]]){const h=[...e[1]].reduce((x,c)=>x*31+c.charCodeAt(0)&1023,7)%360;return`<span class="av" style="${sz};--a1:hsl(${h} 70% 55%);--a2:hsl(${(h+50)%360} 70% 32%)"><span class="em">${EMO[e[1]]}</span></span>`}
+ return`<span class="av" style="${sz}">${esc(ini(name||"?"))}</span>`}
+const TRC={platinum:"#d9e2ff",gold:"#f3c86a",silver:"#c9ced8",bronze:"#d08b5b"},TRN={platinum:"Platina",gold:"Ouro",silver:"Prata",bronze:"Bronze"};
+const trIc=g=>`<svg viewBox="0 0 24 24"><path fill="${TRC[g]}" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3zm0 4H6v1a2 2 0 0 0 1 1.7zm10 0v2.7A2 2 0 0 0 18 8V7z"/></svg>`;
+const profAct=()=>PROF.profiles.find(p=>p.id===PROF.active)||null;
+const trRow=p=>`<div class="trs">${["platinum","gold","silver","bronze"].map(g=>`<span>${trIc(g)}<b>${p.trophies[g]||0}</b>${TRN[g]}</span>`).join("")}</div>`;
+const lvRing=p=>`<div class="lvr" style="--p:${p.lvl_need?Math.round(p.lvl_xp/p.lvl_need*100):0}" title="${p.lvl_xp} de ${p.lvl_need} XP para o nível ${p.level+1}"><b>${p.level}</b><i>NÍVEL</i></div>`;
+function profChips(){const p=profAct(),c=$("#pchip"),k=$("#cprof");
+ if(c)c.innerHTML=p?`${avHTML(p.avatar,32,p.name)}<span>${esc(p.name)}</span><span class="lv">nv ${p.level}</span>`:`${avHTML("",32,"+")}<span>Criar perfil</span>`;
+ if(k)k.innerHTML=p?`${avHTML(p.avatar,34,p.name)}<span>${esc(p.name)}</span>`:""}
+async function profLoad(){try{PROF=await FA().profiles_state()||PROF}catch(e){}PROF.loaded=true;profChips()}
+window.profilesChanged=st=>{PROF={...st,loaded:true};profChips();if($("#dlg .pfk"))profUI();if(S.con&&CN.tab===2&&CN.sec===8&&!CN.dlg)cnSettings()};
+/* desktop: janela do perfil */
+const PU={m:"",id:"",name:"",av:""};
+function profOpen(){PU.m=PROF.profiles.length?"":"new";PU.id="";PU.name="";PU.av="neo-roxo";SM.gid="";$("#mod").classList.add("on");profUI();FA().profile_sync()}
+function profEdit(p){PU.m=p?"edit":"new";PU.id=p?p.id:"";PU.name=p?p.name:"";PU.av=p?p.avatar:AVS[PROF.profiles.length%8];profUI()}
+function profUI(){const p=profAct();let h;
+ if(PU.m){const cur=PROF.profiles.find(x=>x.id===PU.id);
+  h=`<h2>${PU.m==="new"?"Novo perfil":"Editar perfil"}</h2><p class="s">Não é uma conta: fica só neste PC.</p>
+  <div class="phd">${avHTML(PU.av==="file"&&cur?cur.avatar:PU.av,96,PU.name||"?")}<div style="flex:1"><label>Nome</label><input id="pfn" value="${esc(PU.name)}" maxlength="24" placeholder="Seu nome" autocomplete="off"></div></div>
+  <label>Foto</label><div class="avg">${AVS.map(a=>`<button data-pav="${a}" class="${PU.av===a?"on":""}" title="${a.slice(4)}">${avHTML(a,58)}</button>`).join("")}</div>
+  <button class="btn2" id="pfphoto">🖼 Escolher uma foto do PC…</button>
+  <div class="mf">${PU.m==="edit"&&PROF.profiles.length>1?`<button class="btn2" id="pfdel">Remover perfil</button>`:""}<span class="sp"></span><button class="btn2" id="pfcancel">${PROF.profiles.length?"Voltar":"Agora não"}</button><button class="btn2 pri" id="pfsave">Salvar</button></div>`}
+ else{h=`<div class="phd">${avHTML(p.avatar,96,p.name)}<div style="flex:1"><h2>${esc(p.name)}</h2><p>${p.xp} XP · ${p.total} troféu${p.total===1?"":"s"}</p></div>${lvRing(p)}</div>${trRow(p)}
+  <p class="s">Troféus das conquistas da Steam (pela raridade) e do RetroAchievements (pelos pontos). Platina = jogo 100%. Bronze 15 XP, prata 30, ouro 90, platina 300. Cada conquista conta para o perfil que estava em uso quando ela apareceu.${PROF.steam||PROF.ra?"":" Entre com a Steam ou com o RetroAchievements para ganhar troféus."}</p>
+  <h4>Perfis neste PC</h4><div class="plist">${PROF.profiles.map(x=>`<button data-psel="${x.id}" class="${x.id===PROF.active?"on":""}">${avHTML(x.avatar,58,x.name)}<span>${esc(x.name)}</span><span class="s" style="font-size:11px">nível ${x.level}</span></button>`).join("")}<button id="pfadd">${avHTML("",58,"+")}<span>Adicionar</span></button></div>
+  <label class="chk" style="margin-top:14px"><input type="checkbox" id="pfask"${PROF.ask?" checked":""}> Perguntar “Quem está jogando?” ao abrir o modo console</label>
+  <div class="mf"><button class="btn2" id="pfedit">Editar perfil</button><span class="sp"></span><button class="btn2 pri" id="pfx">Fechar</button></div>`}
+ $("#dlg").innerHTML=`<div class="pfk">${h}</div>`}
+$("#mod").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!$("#dlg .pfk"))return;const a=FA();
+ if(t.dataset.pav){PU.name=$("#pfn").value;PU.av=t.dataset.pav;profUI()}
+ else if(t.dataset.psel){const r=await a.profile_select(t.dataset.psel);PROF=r.state;profChips();profUI();toast("Perfil em uso: "+(profAct()||{}).name)}
+ else if(t.id==="pfadd")profEdit(null);else if(t.id==="pfedit")profEdit(profAct());else if(t.id==="pfx")closeForm();
+ else if(t.id==="pfcancel"){if(PROF.profiles.length){PU.m="";profUI()}else closeForm()}
+ else if(t.id==="pfsave"||t.id==="pfphoto"){PU.name=$("#pfn").value.trim();if(!PU.name){toast("Escolha um nome",1);$("#pfn").focus();return}
+  const r=await a.profile_save({id:PU.id,name:PU.name,avatar:PU.av});if(!r.ok){toast(r.msg,1);return}PU.id=r.id;PROF=r.state;
+  if(t.id==="pfphoto"){PU.m="edit";const x=await a.profile_photo(r.id);if(x.state)PROF=x.state;if(x.ok)PU.av="file";else if(!x.cancel)toast(x.msg,1);profChips();profUI();return}
+  if(PROF.profiles.length===1||!PROF.active)await a.profile_select(r.id);await profLoad();PU.m="";profUI();toast("Perfil salvo")}
+ else if(t.id==="pfdel"){const r=await a.profile_delete(PU.id);PROF=r.state;profChips();PU.m="";profUI();toast("Perfil removido (os troféus foram para o primeiro perfil)")}});
+$("#mod").addEventListener("change",e=>{if(e.target.id==="pfask"){PROF.ask=e.target.checked;FA().profile_ask(PROF.ask)}});
+$("#pchip").onclick=()=>profOpen();
+/* console: "Quem está jogando?" e a seção Perfil */
+function profWho(){if(!S.con)return;const ps=PROF.profiles;
+ cnOpen(`<h1>${ps.length?"Bem-vindo(a) de volta ao NEO SD":"Bem-vindo(a) ao NEO SD"}</h1><p class="ws">${ps.length?"Quem está jogando?":"Crie um perfil: um nome e uma foto, só neste PC."}</p>
+  <div class="wrow"><button class="wav add cf" data-da="pwadd" data-fk="pw:add">${avHTML("",190,"+")}<span>Adicionar usuário</span></button>${ps.map(p=>`<button class="wav cf" data-da="pwsel" data-id="${p.id}" data-fk="pw:${p.id}">${avHTML(p.avatar,190,p.name)}<span>${esc(p.name)}</span><span class="wl">nível ${p.level}</span></button>`).join("")}</div>`,"who");
+ CN.back=()=>{if(!PROF.profiles.length){PROF.ask=false;FA().profile_ask(false)}cnClose()};CN.fxKey=PROF.active?"pw:"+PROF.active:ps.length?"pw:"+ps[0].id:"pw:add";cnRestore();cnHints()}
+function profWhoMaybe(){if(!PROF.ask||CN.whoShown)return;CN.whoShown=1;const go=()=>{if(INTRO.on||!PROF.loaded){setTimeout(go,250);return}if(!PROF.ask)return;if(S.con&&!CN.dlg)profWho()};setTimeout(go,300)}
+function cnProfNew(after){const st={name:"",av:AVS[PROF.profiles.length%8]};
+ oskOpen({title:"Nome do perfil",value:"",done:v=>{st.name=v.trim().slice(0,24);if(!st.name){toast("Escolha um nome",1);return after()}cnAvPick(st.av,async av=>{const r=await FA().profile_save({name:st.name,avatar:av});if(!r.ok){toast(r.msg,1);return after()}await FA().profile_select(r.id);await profLoad();FA().profile_sync();toast("Olá, "+st.name+"!");after(true)},after)},back:after})}
+function cnAvPick(cur,done,back,pid){cnOpen(`<h2>Escolha uma foto</h2><p class="pd">Ícones do NEO SD ou uma foto do PC.</p><div class="avg">${AVS.map(a=>`<button class="cf${cur===a?" on":""}" data-da="pavp" data-av="${a}" data-fk="av:${a}">${avHTML(a,88)}</button>`).join("")}</div>${pid?`<button class="crowi cf" data-da="pavf" data-fk="av:file"><span><b>🖼 Foto do PC…</b><i>Abre a janela do Windows para escolher uma imagem (use o mouse)</i></span><em>Escolher</em></button>`:""}`);
+ CN.avDone=done;CN.avPid=pid;CN.back=back;CN.fxKey="av:"+(cur||AVS[0]);cnRestore();cnHints()}
+function profPane(){const p=profAct();if(!p)return`<h2 class="ph">Perfil</h2><p class="pd">Crie um perfil com nome e foto (só neste PC). As conquistas viram troféus e nível.</p><button class="crowi cf" data-ca="pfnew" data-fk="pf:new"><span><b>Criar perfil</b></span><em>Criar</em></button>`;
+ return`<div class="phd">${avHTML(p.avatar,96,p.name)}<div style="flex:1"><h2>${esc(p.name)}</h2><p>${p.xp} XP · faltam ${p.lvl_need-p.lvl_xp} para o nível ${p.level+1}</p></div>${lvRing(p)}</div>${trRow(p)}
+ <button class="crowi cf" data-ca="pfname" data-fk="pf:name"><span><b>Nome</b><i>${esc(p.name)}</i></span><em>Editar</em></button>
+ <button class="crowi cf" data-ca="pfav" data-fk="pf:av"><span><b>Foto</b><i>Ícones do NEO SD ou uma foto do PC</i></span><em>Trocar</em></button>
+ <button class="crowi cf" data-ca="pfwho" data-fk="pf:who"><span><b>Trocar de usuário</b><i>${PROF.profiles.length} perfi${PROF.profiles.length===1?"l":"s"} neste PC</i></span><em>Trocar</em></button>
+ <button class="crowi cf" data-ca="pfnew" data-fk="pf:new"><span><b>Adicionar usuário</b></span><em>Adicionar</em></button>
+ <button class="crowi cf" data-ca="pfask" data-fk="pf:ask"><span><b>Perguntar quem está jogando</b><i>Ao abrir o modo console</i></span>${sw(PROF.ask)}</button>
+ <button class="crowi cf" data-ca="pfsync" data-fk="pf:sync"><span><b>Atualizar troféus</b><i>Bronze 15 XP, prata 30, ouro 90, platina 300 (jogo 100%)</i></span><em>Atualizar</em></button>
+ ${PROF.profiles.length>1?`<button class="crowi cf" data-ca="pfdel" data-fk="pf:del"><span><b>Remover este perfil</b><i>Os troféus passam para o primeiro perfil</i></span><em>Remover</em></button>`:""}`}
+$("#cmain").addEventListener("click",async e=>{const t=e.target.closest("[data-ca]");if(!t||!/^pf/.test(t.dataset.ca))return;const a=FA(),ca=t.dataset.ca,p=profAct(),back=()=>{cnClose();CN.fxKey="pf:"+ca.slice(2);cnSettings()};
+ if(ca==="pfnew")cnProfNew(back);
+ else if(ca==="pfname")oskOpen({title:"Nome do perfil",value:p.name,done:async v=>{if(v.trim()){await a.profile_save({id:p.id,name:v.trim()});await profLoad()}back()},back});
+ else if(ca==="pfav")cnAvPick(p.avatar,async av=>{await a.profile_save({id:p.id,name:p.name,avatar:av});await profLoad();back()},back,p.id);
+ else if(ca==="pfwho")profWho();
+ else if(ca==="pfask"){PROF.ask=!PROF.ask;await a.profile_ask(PROF.ask);cnSettings()}
+ else if(ca==="pfsync"){toast("Atualizando os troféus…");a.profile_sync()}
+ else if(ca==="pfdel"){const r=await a.profile_delete(p.id);PROF=r.state;profChips();cnSettings();toast("Perfil removido")}});
+$("#cdlgi").addEventListener("click",async e=>{const t=e.target.closest("[data-da]");if(!t||!/^p(w|av)/.test(t.dataset.da))return;const da=t.dataset.da,a=FA();
+ if(da==="pwsel"){const r=await a.profile_select(t.dataset.id);PROF=r.state;profChips();cnClose();toast("Olá, "+(profAct()||{}).name+"!");if(CN.tab===2)cnSettings()}
+ else if(da==="pwadd")cnProfNew(ok=>{if(ok){cnClose();if(CN.tab===2)cnSettings()}else profWho()});
+ else if(da==="pavp"){const f=CN.avDone;if(f)f(t.dataset.av)}
+ else if(da==="pavf"){const pid=CN.avPid,r=await a.profile_photo(pid);if(r.state){PROF=r.state;profChips()}if(r.ok){toast("Foto trocada");CN.back&&CN.back()}else if(!r.cancel)toast(r.msg,1)}});
 window.discIn=p=>{if(p.running)return;let n=0;const go=()=>{const i=G.findIndex(g=>g.id===p.id);if(i<0){if(++n<15)setTimeout(go,200);return}  // espera a biblioteca recarregar
  const g=G[i];if(p.status==="joined")toast("💿 Disco "+p.disc_n+" de "+g.n+" adicionado ao jogo");
  if(p.popup){if(S.con){if(g.sys&&!CN.rbin){if(CN.tab!==3)cnTab(3);if(CN.esys!==g.sys)cnSysEnter(g.sys)}S.ci=i;cnSel()}else if(S.tab==="det"&&!$("#mod").classList.contains("on"))pick(i);
@@ -1393,8 +1573,8 @@ window.discIn=p=>{if(p.running)return;let n=0;const go=()=>{const i=G.findIndex(
   else{if(CN.tab!==0)cnTab(0);S.ci=i;cnSel()}}
  else if(S.tab==="det"){if(S.sysf&&S.sysf!==g.sys){S.sysf="";render()}pick(i)}};setTimeout(go,150)};window.sdTick=i=>{S.sd=!!i;if(i)S.info=i;sd()};window.consoleWake=()=>{if(!S.con)setCon(true)};
 addEventListener("pywebviewready",()=>load().then(wizardCheck));
-if(!API()&&!INAPP)setTimeout(wizardCheck,500); // só na prévia do navegador
-addEventListener("pywebviewready",()=>{FA().update_status().then(st=>{UPD=st});FA().retrobat_setup_status().then(st=>{RBS=st;rbsPill()});FA().sfx_status().then(st=>Object.assign(SFXST,st))});
+if(!API()&&!INAPP){setTimeout(wizardCheck,500);profLoad()} // só na prévia do navegador
+addEventListener("pywebviewready",()=>{profLoad();FA().update_status().then(st=>{UPD=st});FA().retrobat_setup_status().then(st=>{RBS=st;rbsPill()});FA().sfx_status().then(st=>Object.assign(SFXST,st))});
 </script>
 </body>
 </html>

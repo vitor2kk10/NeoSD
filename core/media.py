@@ -8,6 +8,7 @@ import os
 from PIL import Image, ImageOps
 
 _cache = {}
+_ratio = {}  # mesma chave do _cache -> largura/altura da imagem original
 
 
 def dominant_hue(im):
@@ -39,6 +40,7 @@ def load_art(path, kind="cover"):
     try:
         with Image.open(path) as im:
             im = ImageOps.exif_transpose(im)
+            _ratio[key] = round(im.width / im.height, 3) if im.height else None
             hue = dominant_hue(im)
             buf = io.BytesIO()
             if kind == "hero":
@@ -61,3 +63,11 @@ def load_art(path, kind="cover"):
     except Exception:
         _cache[key] = (None, None)
     return _cache[key]
+
+
+def art_ratio(path, kind="cover"):
+    """Largura / altura da arte (capas de SNES e N64 são deitadas, ~1,4; de PS1 quase quadradas, ~1,0)."""
+    if not path or not os.path.isfile(path):
+        return None
+    load_art(path, kind)
+    return _ratio.get((str(path), os.path.getmtime(path), kind))

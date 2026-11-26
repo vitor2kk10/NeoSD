@@ -77,6 +77,36 @@ class Api:
         return self._window.create_file_dialog(FD.OPEN if FD else webview.OPEN_DIALOG,
                                                allow_multiple=multiple, file_types=types)
 
+    # ---- perfis (nome, foto, nível e troféus) ----
+    def profiles_state(self):
+        return self._profiles.state()
+
+    def profile_save(self, data):
+        ok, msg, pid = self._profiles.save(data or {})
+        return {"ok": ok, "msg": msg, "id": pid, "state": self._profiles.state()}
+
+    def profile_photo(self, pid):
+        """Escolher uma foto do PC para o perfil (recortada em quadrado)."""
+        result = self._dialog("open", ("Imagens (*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif)",))
+        if not result:
+            return {"ok": False, "cancel": True}
+        ok, msg = self._profiles.set_photo(pid, result[0])
+        return {"ok": ok, "msg": msg, "state": self._profiles.state()}
+
+    def profile_delete(self, pid):
+        return {"ok": self._profiles.delete(pid), "state": self._profiles.state()}
+
+    def profile_select(self, pid):
+        return {"ok": self._profiles.select(pid), "state": self._profiles.state()}
+
+    def profile_ask(self, value):
+        self._profiles.set_ask(value)
+        return {"ok": True}
+
+    def profile_sync(self):
+        threading.Thread(target=self._profiles.sync, daemon=True).start()
+        return {"ok": True}
+
     def pick_file(self, kind):
         """Seletor de arquivo nativo. kind: exe | rom | cover | icon | emu_exe | core."""
         types = {"exe": ("Executáveis (*.exe;*.bat)", "Todos os arquivos (*.*)"),
@@ -432,6 +462,58 @@ class Api:
             return {"ok": False, "supported": False, "reason": "Por enquanto, só jogos da Steam e do RetroBat têm conquistas no NeoSD."}
         return {**self._ach.game(appid), "supported": True, "source": "steam"}
 
+    # ---- RetroAchievements: procurar de novo / escolher o jogo à mão ----
+    def ra_rematch(self, game_id):
+        g = self._retro(game_id)
+        if not g:
+            return {"ok": False, "msg": "Este jogo não tem conquistas no RetroAchievements."}
+        if g.get("ra_game"):
+            self._svc.update_game(game_id, {}, remove=("ra_game",))
+            g = self._retro(game_id)
+        gid, why = self._ra.rematch(g)
+        return {"ok": bool(gid), "msg": "Jogo encontrado pelo arquivo!" if gid else why}
+
+    def ra_search(self, game_id, query=""):
+        from core.multidisc import split_disc
+        g = self._retro(game_id)
+        console = self._ra.console_of(g) if g else None
+        if not console:
+            return {"ok": False, "msg": "Este sistema não tem conquistas no RetroAchievements."}
+        if not self._ra.configured():
+            return {"ok": False, "msg": "Entre com a sua conta do RetroAchievements em Configurações → Emulação."}
+        q = (query or "").strip() or split_disc(g.get("name", game_id))[0]
+        try:
+            items = self._ra.search(console, q)
+            if not items and not query and g.get("rom_path"):  # o nome do arquivo às vezes ajuda mais
+                items = self._ra.search(console, os.path.basename(g["rom_path"]))
+        except Exception as e:
+            logging.getLogger("neosd").info("RA busca: %s", e)
+            return {"ok": False, "msg": "Não consegui falar com o RetroAchievements (internet ou chave)."}
+        return {"ok": True, "query": q, "items": items, "linked": int(g.get("ra_game") or 0),
+                "file": os.path.basename(g.get("rom_path", "")) if g.get("rom_path") else ""}
+
+    def ra_link(self, game_id, ra_id):
+        g = self._retro(game_id)
+        if not g:
+            return {"ok": False, "msg": "Este jogo não tem conquistas no RetroAchievements."}
+        if ra_id:
+            self._svc.update_game(game_id, {"ra_game": int(ra_id)})
+        else:
+            self._svc.update_game(game_id, {}, remove=("ra_game",))
+        r = self._ra.game(self._retro(game_id), fresh=True)
+        return {"ok": True, "hash_ok": r.get("hash_ok", True), "title": r.get("title", "")}
+
+    def ra_versions(self, game_id):
+        g = self._retro(game_id)
+        gid = self._ra.game_id(g)[0] if g else None
+        if not gid:
+            return {"ok": False, "items": []}
+        try:
+            return {"ok": True, "items": self._ra.versions(gid)}
+        except Exception as e:
+            logging.getLogger("neosd").info("RA versões: %s", e)
+            return {"ok": False, "items": []}
+
     # ---- RetroAchievements (conta) ----
     def ra_status(self):
         return self._ra.status()
@@ -696,9 +778,10 @@ class Api:
     def scraper_apply(self, game_id, selection):
         return self._safe(self._scraper.apply, game_id, selection)
 
-    def scraper_batch_start(self):
-        ok, msg, total = self._scraper.batch_start(lambda p: self._emit("scraperProgress", p))
-        return {"ok": ok, "msg": msg, "total": total}
+    def scraper_batch_start(self, force=False):
+        """Completar biblioteca. force=True procura de novo também quem foi procurado nos últimos 30 dias."""
+        ok, msg, queue = self._scraper.batch_start(lambda p: self._emit("scraperProgress", p), bool(force))
+        return {"ok": ok, "msg": msg, "total": len(queue), "queue": queue}
 
     def scraper_batch_cancel(self):
         self._scraper.batch_cancel()
@@ -813,6 +896,9 @@ def main():
     ach = api._ach = SteamAchievements(libs.steam_root, LIBRARY)
     overlay = api._overlay = OverlayService(LIBRARY / "achicons", app)
     ra = api._ra = RetroAchievementsService(app, retrobat, LIBRARY)
+    from core.profiles import ProfileService
+    profiles = api._profiles = ProfileService(LIBRARY, service.catalog, ach, ra)
+    profiles.notify = lambda st: api._emit("profilesChanged", st)
     retrobat.on_launch = ra.on_launch
     discs = service.discs = api._discs = DiscService(retrobat, app, log_dir=LIBRARY)
     discs.on_launch = ra.on_launch  # conquistas por cima do jogo também nos discos
@@ -900,9 +986,15 @@ def main():
     def on_tick(drive):
         js(window, f"sdTick({json.dumps(disk_info(drive) if drive else None)})")
 
-    def on_combo():  # Start + Back
+    from core.fullscreen import FullscreenGuard
+    fsguard = FullscreenGuard(window, lambda: api._fullscreen)
+
+    def on_combo():  # Start + Back (e 2ª execução, ex.: o AnyFSE abrindo o NeoSD de novo no modo Xbox)
         try:
-            window.restore()
+            if api._fullscreen:
+                fsguard.front()  # window.restore() tirava a janela da tela cheia
+            else:
+                window.restore()
             window.on_top = True
             window.on_top = False
         except Exception:
@@ -952,7 +1044,10 @@ def main():
         api._emit("achUnlocked", {"items": out, "popup": not shown, "debug": debug})
 
     api._announce = announce
-    ra.announce = lambda items: show_unlocks([{"game_id": None, **i} for i in items])  # RetroAchievements
+    def ra_announce(items):  # RetroAchievements
+        show_unlocks([{"game_id": None, **i} for i in items])
+        profiles.sync_soon(5)
+    ra.announce = ra_announce
 
     def ach_watch():
         """Conquistas novas da Steam: a Steam regrava appcache/stats no instante do desbloqueio."""
@@ -962,6 +1057,7 @@ def main():
                 new = ach.poll()
                 if new:
                     announce(new)
+                    profiles.sync_soon(3)  # troféus e nível do perfil ativo
             except Exception:
                 logging.getLogger("neosd").exception("verificação de conquistas")
             time.sleep(2)
@@ -986,7 +1082,9 @@ def main():
         threading.Thread(target=rom_watch, daemon=True).start()
         threading.Thread(target=ach_watch, daemon=True).start()
         updater.start()
+        threading.Timer(20, profiles.sync).start()  # troféus que entraram com o NeoSD fechado
         dark_titlebar(window)
+        fsguard.start()
         SDMonitor(on_insert, on_remove, on_tick).start()
         DiscMonitor(on_disc_insert, on_disc_remove).start()
         watch_combo(on_combo)

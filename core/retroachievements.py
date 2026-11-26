@@ -14,6 +14,8 @@ RetroBat repassa. O NeoSD faz três coisas:
      um jogo do RetroBat aberto pelo NeoSD estiver rodando, consulta os desbloqueios recentes a cada 15 s.
 """
 import calendar
+import difflib
+import re
 import hashlib
 import json
 import logging
@@ -433,7 +435,16 @@ class RetroAchievementsService:
             return hs, None
 
     def game_id(self, game):
-        """-> (id do jogo no RA | None, motivo para mostrar)."""
+        """-> (id do jogo no RA | None, motivo para mostrar). Um jogo escolhido à mão ("ra_game") vence o hash."""
+        if game.get("ra_game"):
+            try:
+                return int(game["ra_game"]), ""
+            except (TypeError, ValueError):
+                pass
+        return self.auto_id(game)
+
+    def auto_id(self, game):
+        """Identificação pelo hash do arquivo (o mesmo jeito do emulador)."""
         if game.get("launch_type") == "disc":  # disco físico: hashes guardados quando o disco entrou no leitor
             console = CONSOLES.get(game.get("disc_system", ""))
             if not console:
@@ -477,10 +488,14 @@ class RetroAchievementsService:
             return {"ok": False, "reason": "Entre com a sua conta do RetroAchievements em Configurações → Emulação."}
         gid, why = self.game_id(game)
         if not gid:
-            return {"ok": False, "reason": why}
+            return {"ok": False, "reason": why, "can_search": self.console_of(game) is not None}
+        extra = {"match": "hash"}
+        if game.get("ra_game"):  # escolhido à mão: o emulador só desbloqueia se o arquivo for uma versão aceita
+            auto, _ = self.auto_id(game)
+            extra = {"match": "manual", "hash_ok": auto == gid}
         hit = self._games.get(gid)
         if hit and not fresh and self.now() - hit[0] < GAME_TTL:
-            return hit[1]
+            return dict(hit[1], **extra) if hit[1].get("ok") else hit[1]
         try:
             d = self._api("GetGameInfoAndUserProgress", g=gid)
         except Exception as e:
@@ -505,7 +520,73 @@ class RetroAchievementsService:
         if not items:
             out = {"ok": False, "reason": "Este jogo ainda não tem conquistas no RetroAchievements."}
         self._games[gid] = (self.now(), out)
-        return out
+        return dict(out, **extra) if out.get("ok") else out
+
+    # ---------- procurar de novo / escolher o jogo à mão ----------
+    def console_of(self, game):
+        return CONSOLES.get(game.get("disc_system", "") if game.get("launch_type") == "disc" else game.get("rb_system", ""))
+
+    def rematch(self, game):
+        """Esquece o hash guardado desta ROM e baixa de novo a lista do console (o RA cadastra versões novas)."""
+        console = self.console_of(game)
+        rom = game.get("rom_path", "")
+        with self._lock:
+            idx = self._load_index()
+            if rom and idx.pop(rom, None) is not None:
+                self._save_index()
+        if console:
+            self._hashlib.pop(console, None)
+            try:
+                (self.dir / "ra_hashlib" / f"{console}.json").unlink(missing_ok=True)
+            except OSError:
+                pass
+        self._games.clear()
+        return self.auto_id(game)
+
+    def game_list(self, console):
+        """[{id, title, ach, icon}] dos jogos COM conquistas do console (Web API; guardada 7 dias)."""
+        f = self.dir / "ra_hashlib" / f"list_{console}.json"
+        try:
+            hit = json.loads(f.read_text(encoding="utf-8"))
+            if self.now() - hit.get("t", 0) < HASHLIB_TTL and hit.get("games"):
+                return hit["games"]
+        except (OSError, ValueError):
+            hit = None
+        d = self._api("GetGameList", i=console, f=1, h=0)
+        games = [{"id": int(x["ID"]), "title": x.get("Title", ""), "ach": int(x.get("NumAchievements") or 0),
+                  "icon": MEDIA + x["ImageIcon"] if x.get("ImageIcon") else ""} for x in d if isinstance(x, dict) and x.get("ID")]
+        try:
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(json.dumps({"t": self.now(), "games": games}), encoding="utf-8")
+        except OSError:
+            pass
+        return games
+
+    def search(self, console, query, limit=24):
+        """Jogos do RA parecidos com o nome (o nome da ROM pode vir bagunçado: 'super_mario_world_(u)_[!]')."""
+        q = _norm_title(query)
+        qt = set(q.split())
+        out = []
+        for g in self.game_list(console):
+            t = _norm_title(g["title"])
+            tt = set(t.split())
+            if not qt or not tt:
+                continue
+            score = 2 * len(qt & tt) / (len(qt) + len(tt)) + 0.6 * difflib.SequenceMatcher(None, q, t).ratio()
+            if t == q:
+                score += 1
+            if "~" in g["title"] or "[subset" in g["title"].lower():
+                score -= 0.35  # hacks, homebrew e subconjuntos só aparecem se baterem muito
+            if score > 0.45:
+                out.append((score, g))
+        out.sort(key=lambda x: -x[0])
+        return [g for _, g in out[:limit]]
+
+    def versions(self, gid):
+        """Arquivos (versões) que o RA aceita para o jogo: [{name, md5, labels}]."""
+        d = self._api("GetGameHashes", i=gid)
+        return [{"name": h.get("Name", ""), "md5": h.get("MD5", ""), "labels": h.get("Labels") or []}
+                for h in (d.get("Results") or []) if isinstance(h, dict)]
 
     def summary(self, game):
         g = self.game(game)
@@ -559,3 +640,13 @@ class RetroAchievementsService:
                     log.info("RetroAchievements: jogo fechado, parei de acompanhar")
                     return
             time.sleep(POLL_EVERY)
+
+
+def _norm_title(s):
+    """'Super_Mario_World_(U)_[!].sfc' -> 'super mario world' ; 'Legend of Zelda, The' -> 'the legend of zelda'."""
+    s = os.path.splitext(s or "")[0] if re.search(r"\.[a-z0-9]{2,4}$", s or "", re.I) else (s or "")
+    s = re.sub(r"[\(\[].*?[\)\]]|~.*?~", " ", s)
+    s = s.replace("_", " ").replace("&", " and ")
+    s = re.sub(r"^(.*?), (the|a|an)\b", r"\2 \1", s.strip(), flags=re.I)  # "Zelda, The - ..." -> "The Zelda - ..."
+    s = re.sub(r"[^0-9a-z ]+", " ", s.lower())
+    return re.sub(r"\s+", " ", s).strip()

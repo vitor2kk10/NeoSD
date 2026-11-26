@@ -4,6 +4,7 @@ import copy
 import io
 import os
 import threading
+import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -314,17 +315,39 @@ class ScraperService:
         other = next((c for c in cands[1:] if group(c) != group(best)), None)
         if best.get("rom_match") or (best["exact"] and best["score"] >= 0.85
                                      and (not other or best["score"] - other["score"] >= 0.1)):
-            r = self.apply(game_id, self.default_selection(self.preview(game_id, best)))
-            return {"status": "applied", "name": g["name"], **r}
+            sel = self.default_selection(self.preview(game_id, best))
+            r = self.apply(game_id, sel) if sel["fields"] or sel["art"] else {"applied": [], "failed": []}
+            self.games.update_game(game_id, {"scrape_tried": int(time.time())})
+            return {"status": "applied" if r.get("applied") else "nothing", "name": g["name"], **r}
         if not any(p["id"] == game_id for p in self._pending):
             self._pending.append({"id": game_id, "name": g["name"]})
         return {"status": "review", "name": g["name"]}
 
-    def needs(self, g):
-        cover = resolve(g.get("cover"))
-        if g.get("scrape_miss") and time.time() - g["scrape_miss"] < 30 * 86400:
+    TEXT = ("description", "genre", "developer", "release_date")
+    MISSING = {"cover": "capa", "hero": "fundo", "icon": "ícone", "description": "sinopse", "genre": "gênero",
+               "developer": "desenvolvedora", "release_date": "lançamento"}
+
+    def missing(self, g):
+        """O que falta no jogo (capa, fundo/banner, ícone, sinopse, gênero, desenvolvedora, lançamento)."""
+        out = []
+        for kind in ("cover", "hero", "icon"):
+            p = resolve(g.get(kind))
+            if not (p and p.is_file()):
+                out.append(kind)
+        return out + [k for k in self.TEXT if not g.get(k)]
+
+    def needs(self, g, force=False):
+        """Completa quem tem QUALQUER coisa faltando (ex.: capa sem fundo). Quem já foi procurado e a fonte não
+        tinha o resto não é procurado de novo por 30 dias (a não ser no "procurar de novo")."""
+        if g.get("launch_type") in ("app",):
             return False
-        return not (cover and cover.is_file()) or not g.get("description")
+        miss = self.missing(g)
+        if not miss:
+            return False
+        if force:
+            return True
+        last = max(g.get("scrape_miss") or 0, g.get("scrape_tried") or 0)
+        return not (last and time.time() - last < 30 * 86400)
 
     def pending(self):
         return list(self._pending)
@@ -338,19 +361,22 @@ class ScraperService:
     def batch_cancel(self):
         self._cancel.set()
 
-    def batch_start(self, notify):
+    def batch_start(self, notify, force=False):
         if self.batch_running():
-            return False, "Já existe uma busca em andamento.", 0
+            return False, "Já existe uma busca em andamento.", []
         if not self.available():
-            return False, "Nenhuma fonte configurada.", 0
-        ids = [k for k, g in list(self.games.catalog.items()) if self.needs(g)]
+            return False, "Nenhuma fonte configurada.", []
+        ids = [k for k, g in list(self.games.catalog.items()) if self.needs(g, force)]
         if not ids:
-            return False, "Todos os jogos já têm capa e sinopse.", 0
+            return False, ("Todos os jogos estão completos." if force else
+                           "Todos os jogos já estão completos (ou foram procurados há pouco)."), []
         self._cancel.clear()
         self._pending = []
         self._thread = threading.Thread(target=self._run_batch, args=(ids, notify), daemon=True)
         self._thread.start()
-        return True, "", len(ids)
+        cat = self.games.catalog
+        return True, "", [{"id": k, "name": (cat.get(k) or {}).get("name", k),
+                           "missing": [self.MISSING[m] for m in self.missing(cat.get(k) or {})]} for k in ids]
 
     def _run_batch(self, ids, notify):
         st = {"applied": 0, "review": 0, "notfound": 0, "failed": 0}
@@ -359,18 +385,31 @@ class ScraperService:
             if self._cancel.is_set():
                 break
             notify({"done": i, "total": len(ids), "current": gid, "finished": False, **st})
+            item = {"id": gid, "status": "failed", "detail": ""}
             try:
                 r = self.auto(gid)
-                st[r["status"] if r["status"] in st else "failed"] += 1
+                key = "applied" if r["status"] == "nothing" else r["status"]
+                st[key if key in st else "failed"] += 1
+                item.update(status=r["status"], detail=", ".join(r.get("applied") or []))
                 errors_in_row = 0
             except ScraperError as e:
                 st["failed"] += 1
                 errors_in_row, last_error = errors_in_row + 1, str(e)
-                if errors_in_row >= 3:  # provável falta de internet/credencial ruim: não adianta insistir
-                    break
-        notify({"done": len(ids) if errors_in_row < 3 and not self._cancel.is_set() else i, "total": len(ids),
+                item["detail"] = str(e)
+            except Exception as e:  # um jogo com problema não para a lista toda
+                log.exception("completar %s", gid)
+                st["failed"] += 1
+                item["detail"] = str(e)
+            notify({"done": i + 1, "total": len(ids), "current": "", "finished": False, "item": item, **st})
+            if errors_in_row >= 3:  # provável falta de internet/credencial ruim: não adianta insistir
+                break
+        done = sum(st.values())
+        notify({"done": done, "total": len(ids),
                 "current": "", "finished": True, "cancelled": self._cancel.is_set(),
                 "error": last_error if errors_in_row >= 3 else "", "pending": self.pending(), **st})
+
+
+log = logging.getLogger("neosd.scraper")
 
 
 class _LazyHttp:
